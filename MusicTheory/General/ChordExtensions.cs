@@ -73,5 +73,35 @@ namespace MusicTheory
 
             return allArpeggios;
         }
+
+	    public static MusicalNote GetLowest(this IEnumerable<MusicalNote> notes)
+	    {
+            if (notes.Any())
+            {
+                // Remove any of the same notes like:
+                // E: 0
+                // B: 5
+                return notes.Distinct().Min();
+            }
+            else
+            {
+                return null;
+            }
+	    }
+
+	    public static MusicalNote GetHighest(this IEnumerable<MusicalNote> notes)
+	    {
+            if (notes.Any())
+            {
+                // Remove any of the same notes like:
+                // E: 0
+                // B: 5
+                return notes.Distinct().Max();
+            }
+            else
+            {
+                return null;
+            }
+	    } 
 	}
 }

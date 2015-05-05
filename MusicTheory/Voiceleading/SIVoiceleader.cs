@@ -24,6 +24,7 @@ namespace MusicTheory.Voiceleading
         private int? FretToStayAtOrAbove { get; set; }
         private StringedInstrument StringedInstrument { get; set; }
         private bool RandomVoiceleading { get; set; }
+        private NoteLetter? HighestNote { get; set; }
 
         // To be calculated
         private HashSet<NoteLetter> RequiredNotes { get; set; }
@@ -41,6 +42,7 @@ namespace MusicTheory.Voiceleading
         {
             MaxVoiceleadingDistance = config.MaxVoiceleadingDistance;
             RandomVoiceleading = config.RandomVoiceleading;
+            HighestNote = config.HighestNote;
 
             if (config.StartingChordNotes == null || config.StartingChordNotes.Count == 0)
             {
@@ -129,7 +131,6 @@ namespace MusicTheory.Voiceleading
         //     X                  [8]
         private void GetFretboardLocationsOfValidTargetNotes()
         {
-            // For each musical note in the target chord (key of kvp), we find each available location (value of kvp). Value is a hashset so we eliminate duplicates/
             var allTargetNoteLocationsPerString = new Dictionary<MusicalNote, HashSet<StringedMusicalNote>>();
 
             // The note letters will be returned in the same order as the intervals (thus TargetChordIntervalOptionalPairs can be 
@@ -208,17 +209,6 @@ namespace MusicTheory.Voiceleading
                         //isLowest = false;
                     }
                 }
-            }
-
-            int numOptionalNotes;
-
-            if (RandomVoiceleading == true)
-            {
-                numOptionalNotes = targetChordLetters.Length; // They're all optional
-            }
-            else
-            {
-                numOptionalNotes = TargetChordIntervalOptionalPairs.Count() - RequiredNotes.Count;
             }
 
             // OrderBy seems to give better performance for the voiceleading algorithm,
@@ -311,6 +301,16 @@ namespace MusicTheory.Voiceleading
 
                 if (currentDimensionIndex == numDimensions - 1)
                 {
+                    var highestNoteInChord = chordMovementUpdated.GetHighest();
+
+                    if (HighestNote != null && highestNoteInChord != null)
+                    {
+                        if ((HighestNote != highestNoteInChord.Letter))
+                        {
+                            continue;
+                        }
+                    }
+
                     // If the chord made it this far, it had at most one more required note
                     // to go, and may have just obtained it. So if its length is numRequiredNotes,
                     // we are good. It will never exceed numRequiredNotes because we are using a hash sets.
@@ -333,6 +333,7 @@ namespace MusicTheory.Voiceleading
                 else
                 {
                     /*numIterationsDiagnostic = */
+                    // Just return the method result?
                     if (!CalculateVoicingsRecursive(currentDimensionIndex + 1, numDimensions, chordMovementUpdated, /*numIterationsDiagnostic,*/ numRequiredNotes, numStartNotes, /*startNoteMatchesUpdated*/ requiredNoteLettersObtainedUpdated /*,noteOctavePairsObtainedUpdated*/))
                     {
                         return false;

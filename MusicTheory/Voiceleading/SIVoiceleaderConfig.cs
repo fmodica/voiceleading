@@ -18,5 +18,6 @@ namespace MusicTheory.Voiceleading
         public int? FretToStayAtOrBelow { get; set; }
         public int? FretToStayAtOrAbove { get; set; }
         public bool RandomVoiceleading { get; set; }
+        public NoteLetter HighestNote { get; set; }
     }
 }

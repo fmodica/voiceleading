@@ -14,33 +14,11 @@ namespace MusicTheory.Voiceleading
         }
         // List of Fingerings
         public List<List<StringedMusicalNote>> Fingerings { get; set; }
-        public MusicalNote LowestNote
-        {
-            get
-            {
-                if (Fingerings.Count > 0)
-                {
-                    // Take a sample fingering and remove any of the same notes like:
-                    // E: 0
-                    // B: 5
-                    var sample = Fingerings[0].Distinct();
-
-                    var min = sample.Min();
-
-                    return min;
-                }
-                else
-                {
-                    return null;
-                }
-            }
-        }
-
         public int NumNotes
         {
             get
             {
-                if (Fingerings.Count > 0)
+                if (Fingerings.Any())
                 {
                     // Don't count the same notes on different strings
                     var sample = Fingerings[0].Distinct();
@@ -51,6 +29,18 @@ namespace MusicTheory.Voiceleading
                 {
                     return 0;
                 }
+            }
+        }
+
+        public MusicalNote LowestNote()
+        {
+            if (Fingerings.Any())
+            {
+                return Fingerings[0].GetLowest();
+            }
+            else
+            {
+                return null;
             }
         }
     }
