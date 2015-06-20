@@ -16,34 +16,31 @@ namespace MusicTheory.Voiceleading
         // Constructor parameters
         private List<MusicalNote> StartingChordNotes { get; set; }
         private List<IntervalOptionalPair> TargetChordIntervalOptionalPairs { get; set; }
-        private NoteLetter TargetChordRoot { get; set; }
-        private Interval MaxVoiceleadingDistance { get; set; }
-        private int MaxFretsToStretch { get; set; }
-        //private bool MelodySplittingAndConvergenceAllowed { get; set; }
+        private NoteLetter? TargetChordRoot { get; set; }
+        private Interval? MaxVoiceleadingDistance { get; set; }
+        private int? MaxFretsToStretch { get; set; }
         private int? FretToStayAtOrBelow { get; set; }
         private int? FretToStayAtOrAbove { get; set; }
         private StringedInstrument StringedInstrument { get; set; }
-        private bool RandomVoiceleading { get; set; }
-        private NoteLetter? HighestNote { get; set; }
+        private NoteLetter? HighestRequiredNoteLetter { get; set; }
+        private bool HighestNoteCanTravel { get; set; }
+        private bool LowestNoteCanTravel { get; set; }
 
         // To be calculated
-        private HashSet<NoteLetter> RequiredNotes { get; set; }
+        private HashSet<NoteLetter?> RequiredNotes { get; set; }
         private List<List<StringedMusicalNote>> TargetNoteOptionsPerString { get; set; }
         public List<List<StringedMusicalNote>> ChordMovements { get; set; }
         public Dictionary<HashSet<MusicalNote>, SIVoicingSet> ChordMovementsOrganizedByPitchSet { get; set; }
-
-        // Extra
         public int MaxVoicings { get { return 20000; } }
         public bool VoicingsLimitReached { get; private set; }
+        private MusicalNote HighestNoteInStartChord { get; set; }
+        private MusicalNote SecondHighestNoteInStartingChord { get; set; }
+        private MusicalNote LowestNoteInStartChord { get; set; }
+        private MusicalNote SecondLowestNoteInStartingChord { get; set; }
 
         // Constructor
-        // The parameters should be made into a single config object
         public SIVoiceleader(SIVoiceleaderConfig config)
         {
-            MaxVoiceleadingDistance = config.MaxVoiceleadingDistance;
-            RandomVoiceleading = config.RandomVoiceleading;
-            HighestNote = config.HighestNote;
-
             if (config.StartingChordNotes == null || config.StartingChordNotes.Count == 0)
             {
                 throw new ArgumentException("You must provide some notes for the starting chord");
@@ -54,71 +51,109 @@ namespace MusicTheory.Voiceleading
             // for MusicalNote objects to produce a unique value.
             StartingChordNotes = config.StartingChordNotes.OrderBy(o => o.IntValue).ToList();
 
+            if (config.EndChordRoot == null)
+            {
+                throw new ArgumentException("You must provide a target chord root.");
+            }
+
+            TargetChordRoot = config.EndChordRoot;
+
             if (config.StringedInstrument == null)
             {
                 throw new ArgumentException("You must provide a stringed instrument.");
             }
 
-            StringedInstrument = config.StringedInstrument;
+            if (config.StringedInstrument.NumFrets == 0)
+            {
+                throw new ArgumentException("The stringed instrument must have more than 0 frets.");
+            }
 
-            if (StringedInstrument.Tuning.Distinct().Count() != StringedInstrument.Tuning.Count)
+            if (config.StringedInstrument.Tuning == null || config.StringedInstrument.Tuning.Count == 0)
+            {
+                throw new ArgumentException("The stringed instrument's tuning cannot be null or empty.");
+            }
+
+            if (config.StringedInstrument.Tuning.Distinct().Count() != config.StringedInstrument.Tuning.Count)
             {
                 throw new ArgumentException("The algorithm cannot currently compute voiceleading for a stringed instrument for which two or more strings are tuned to the same pitch.");
             }
 
-            // This is an enum (value type), check for null not necessary
-            TargetChordRoot = config.EndChordRoot;
+            StringedInstrument = config.StringedInstrument;
 
-            if ((RandomVoiceleading == false) && (config.TargetChordIntervalOptionalPairs == null || config.TargetChordIntervalOptionalPairs.Count == 0))
+            if (config.TargetChordIntervalOptionalPairs == null || config.TargetChordIntervalOptionalPairs.Count == 0)
             {
                 throw new ArgumentException("You must provide some interval-optional pairs for the new chord");
             }
 
-            if ((RandomVoiceleading == false) && (config.TargetChordIntervalOptionalPairs.Select(o => o.Interval).Distinct().Count() != config.TargetChordIntervalOptionalPairs.Count))
+            if (config.TargetChordIntervalOptionalPairs.Select(o => o.Interval).Distinct().Count() != config.TargetChordIntervalOptionalPairs.Count)
             {
                 throw new ArgumentException("The list of intervals cannot contain duplicates.");
             }
 
             TargetChordIntervalOptionalPairs = config.TargetChordIntervalOptionalPairs;
 
-            if ((config.MaxFretsToStretch > StringedInstrument.NumFrets))
+            if (config.MaxFretsToStretch == null)
+            {
+                throw new ArgumentException("You must provide the maximum frets to stretch.");
+            }
+
+            if (config.MaxFretsToStretch > StringedInstrument.NumFrets)
             {
                 throw new ArgumentException("The maximum frets to stretch is greater than the number of frets on the instrument");
             }
 
             MaxFretsToStretch = config.MaxFretsToStretch;
 
-            FretToStayAtOrBelow = config.FretToStayAtOrBelow ?? StringedInstrument.NumFrets;
-            FretToStayAtOrAbove = config.FretToStayAtOrAbove ?? 0;
-
-            if (FretToStayAtOrBelow < 0)
+            if (config.MaxVoiceleadingDistance == null)
             {
-                throw new ArgumentOutOfRangeException("The fret to stay at or below must be at least zero (open note)");
+                throw new ArgumentException("You must provide the maximum voiceleading distance.");
             }
 
-            if (FretToStayAtOrAbove > StringedInstrument.NumFrets)
-            {
-                throw new ArgumentOutOfRangeException("The fret to stay at or above cannot be greater than the number of frets on the instrument");
-            }
-
-            if ((MaxVoiceleadingDistance < 0) || MaxVoiceleadingDistance > Interval.Fourth)
+            if ((config.MaxVoiceleadingDistance < 0) || config.MaxVoiceleadingDistance > Interval.Fourth)
             {
                 throw new ArgumentException("The maximum voiceleading is negative or greater than an interval of a fourth. The point of voiceleading is not to jump by large intervals.");
             }
 
+            MaxVoiceleadingDistance = config.MaxVoiceleadingDistance;
+
+            config.FretToStayAtOrBelow = config.FretToStayAtOrBelow ?? StringedInstrument.NumFrets;
+            config.FretToStayAtOrAbove = config.FretToStayAtOrAbove ?? 0;
+
+            if (config.FretToStayAtOrBelow < 0)
+            {
+                throw new ArgumentOutOfRangeException("The fret to stay at or below must be at least zero (open note)");
+            }
+
+            if (config.FretToStayAtOrAbove > StringedInstrument.NumFrets)
+            {
+                throw new ArgumentOutOfRangeException("The fret to stay at or above cannot be greater than the number of frets on the instrument");
+            }
+
+            FretToStayAtOrAbove = config.FretToStayAtOrAbove;
+            FretToStayAtOrBelow = config.FretToStayAtOrBelow;
+
+            HighestRequiredNoteLetter = config.HighestNote;
+            HighestNoteCanTravel = config.HighestNoteCanTravel;
+            LowestNoteCanTravel = config.LowestNoteCanTravel;
+
             // Initialize collections
-            RequiredNotes = new HashSet<NoteLetter>();
+            RequiredNotes = new HashSet<NoteLetter?>();
             TargetNoteOptionsPerString = new List<List<StringedMusicalNote>>();
             ChordMovements = new List<List<StringedMusicalNote>>();
             ChordMovementsOrganizedByPitchSet = new Dictionary<HashSet<MusicalNote>, SIVoicingSet>();
 
-            GetFretboardLocationsOfValidTargetNotes();
+            var distinctStartNotes = StartingChordNotes.Distinct().OrderByDescending(n => n).ToList();
+
+            HighestNoteInStartChord = distinctStartNotes[0];
+            SecondHighestNoteInStartingChord = distinctStartNotes.Count > 1 ? distinctStartNotes[1] : null;
+            LowestNoteInStartChord = distinctStartNotes[distinctStartNotes.Count - 1];
+            SecondLowestNoteInStartingChord = distinctStartNotes.Count > 1 ? distinctStartNotes[distinctStartNotes.Count - 2] : null;
         }
 
-        // Invalid notes will be eliminated based on constraints (e.g. if small leaps cannot occur to the note
-        // from any start-chord note, if fret location is too high or low on the neck, etc.). Ultimately we end up with 
-        // TargetNoteOptionsPerString, which holds each target-note possibility for each string which we will later 
-        // loop over, finding every combination.
+        // Target notes will be eliminated based on constraints (e.g. if small leaps cannot occur to the note
+        // from any start-chord note, if fret location is too high or low on the neck, etc.). Ultimately we end 
+        // up with TargetNoteOptionsPerString, which holds each target-note possibility for each string which we 
+        // will later loop over, finding every combination.
 
         // Example (6-string guitar, standard tuning, major-second voiceleading max, target chord = F maj):
         //
@@ -129,84 +164,42 @@ namespace MusicTheory.Voiceleading
         //     X                  [15, 19]
         //     5                  [3, 20, 24]
         //     X                  [8]
-        private void GetFretboardLocationsOfValidTargetNotes()
+        private void GetValidFretboardLocationsForTargetNotes()
         {
             var allTargetNoteLocationsPerString = new Dictionary<MusicalNote, HashSet<StringedMusicalNote>>();
 
-            // The note letters will be returned in the same order as the intervals (thus TargetChordIntervalOptionalPairs can be 
-            // referenced by the same index as targetChordLetters)
-            NoteLetter[] targetChordLetters;
+            // The note letters will be returned in the same order as the intervals.
+            // Thus TargetChordIntervalOptionalPairs can be referenced by the same index as targetChordLetters).
+            NoteLetter?[] targetChordLetters = TargetChordRoot.GetNoteLettersOfChord(TargetChordIntervalOptionalPairs.Select(o => o.Interval).ToArray());
 
-            if (RandomVoiceleading)
-            {
-                // Any note can be used
-                targetChordLetters = Enum.GetValues(typeof(NoteLetter)).Cast<NoteLetter>().ToArray();
-            }
-            else
-            {
-                targetChordLetters = TargetChordRoot.GetNoteLettersOfChord(TargetChordIntervalOptionalPairs.Select(o => o.Interval).ToArray());
-            }
-
-            // For each target note letter, find every valid location on the fretboard
             for (int i = 0; i < targetChordLetters.Length; i++)
             {
-                NoteLetter targetNoteLetter = targetChordLetters[i];
+                NoteLetter? targetNoteLetter = targetChordLetters[i];
 
                 var availableLocationsForThisTargetNote = StringedInstrument.GetNotesByNoteLetter(targetNoteLetter);
 
-                bool isOptional;
-
-                if (RandomVoiceleading)
+                if (!TargetChordIntervalOptionalPairs[i].IsOptional)
                 {
-                    // All are optional if voiceleaidng is random
-                    isOptional = true;
-                }
-                else
-                {
-                    isOptional = TargetChordIntervalOptionalPairs[i].IsOptional;
-                }
-
-                if (!isOptional)
                     RequiredNotes.Add(targetNoteLetter);
+                }
 
-                foreach (var endNote in availableLocationsForThisTargetNote)
+                var validNotesPerStringForThisNote =
+                    GetValidNotesPerStringForThisNote(availableLocationsForThisTargetNote);
+
+                // Merge into the main dictionary
+                foreach (var endNote in validNotesPerStringForThisNote)
                 {
-                    if (endNote.Fret > FretToStayAtOrBelow)
-                        continue;
-
-                    if ((endNote.Fret < FretToStayAtOrAbove) && endNote.Fret != 0)
-                        continue;
-
-                    // TEST - start notes are ordered by pitch.
-                    // Let the lowest move by an octave.
-                    //bool isLowest = true;
-                    foreach (var startNote in StartingChordNotes)
+                    if (!allTargetNoteLocationsPerString.ContainsKey(endNote.StringItsOn))
                     {
-                        // If this has good voiceleading...
-                        // If we end up having an option to allow the bass note to 
-                        // violate MaxVoiceleadingDistance, create a method for this
-                        // if statement as it exists in multiple places.
-
-                        /*if (
-                            (isLowest && ((endNote - startNote) <= (int)Interval.Seventh + 1))
-                        || (!isLowest && ((endNote - startNote) <= (int)MaxVoiceleadingDistance))
-                            )
-                        {*/
-
-                        // The minus/plus operators have been overloaded for notes to subtract/add their pitch values
-                        if ((endNote - startNote) <= (int)MaxVoiceleadingDistance)
+                        allTargetNoteLocationsPerString[endNote.StringItsOn] = new HashSet<StringedMusicalNote>()
                         {
-                            if (allTargetNoteLocationsPerString.ContainsKey(endNote.StringItsOn))
-                            {
-                                allTargetNoteLocationsPerString[endNote.StringItsOn].Add(endNote);
-                            }
-                            else
-                            {
-                                // Throw in the null as well which represents no note played on that string
-                                allTargetNoteLocationsPerString.Add(endNote.StringItsOn, new HashSet<StringedMusicalNote>() { null, endNote });
-                            }
-                        }
-                        //isLowest = false;
+                            null,
+                            endNote
+                        };
+                    }
+                    else
+                    {
+                        allTargetNoteLocationsPerString[endNote.StringItsOn].Add(endNote);
                     }
                 }
             }
@@ -217,8 +210,58 @@ namespace MusicTheory.Voiceleading
             TargetNoteOptionsPerString = allTargetNoteLocationsPerString.Values.Select(o => o.ToList()).OrderBy(o => o.Count).ToList();
         }
 
+        private List<StringedMusicalNote> GetValidNotesPerStringForThisNote(List<StringedMusicalNote> availableLocationsForThisTargetNote)
+        {
+            var validNotesPerStringForThisNote = new List<StringedMusicalNote>();
+
+            foreach (var endNote in availableLocationsForThisTargetNote)
+            {
+                if (endNote.Fret > FretToStayAtOrBelow)
+                    continue;
+
+                if ((endNote.Fret < FretToStayAtOrAbove) && endNote.Fret != 0)
+                    continue;
+
+                foreach (var startNote in StartingChordNotes)
+                {
+                    if (!HasGoodVoiceleading(startNote, endNote))
+                    {
+                        continue;
+                    }
+
+                    validNotesPerStringForThisNote.Add(endNote);
+                }
+            }
+
+            return validNotesPerStringForThisNote;
+        }
+
+        private bool HasGoodVoiceleading(MusicalNote startNote, MusicalNote endNote)
+        {
+            // If the highest note must be a certain letter, then we assume the highest
+            // note in the stat chord is a melody and can jump. It can go as high as it wants,
+            // but not lower than the second highest - voice leading limit
+            if ((HighestNoteCanTravel || HighestRequiredNoteLetter != null) && startNote.Equals(HighestNoteInStartChord))
+            {
+                var lowerLimit = SecondHighestNoteInStartingChord == null ? StringedInstrument.Tuning.GetLowest().IntValue : (SecondHighestNoteInStartingChord.IntValue - (int)MaxVoiceleadingDistance);
+
+                return endNote.IntValue >= lowerLimit;
+            }
+
+            if (LowestNoteCanTravel && startNote.Equals(LowestNoteInStartChord))
+            {
+                var higherLimit = SecondLowestNoteInStartingChord == null ? StringedInstrument.Tuning.GetHighest().IntValue : (SecondLowestNoteInStartingChord.IntValue - (int)MaxVoiceleadingDistance);
+
+                return endNote.IntValue <= higherLimit;
+            }
+
+            return Math.Abs(endNote - startNote) <= (int)MaxVoiceleadingDistance;
+        }
+
         public void CalculateVoicings()
         {
+            GetValidFretboardLocationsForTargetNotes();
+
             int numDimensions = TargetNoteOptionsPerString.Count();
 
             int startDimensionIndex = 0;
@@ -301,11 +344,16 @@ namespace MusicTheory.Voiceleading
 
                 if (currentDimensionIndex == numDimensions - 1)
                 {
-                    var highestNoteInChord = chordMovementUpdated.GetHighest();
-
-                    if (HighestNote != null && highestNoteInChord != null)
+                    if (chordMovementUpdated.Count() == 0)
                     {
-                        if ((HighestNote != highestNoteInChord.Letter))
+                        continue;
+                    }
+
+                    if (HighestRequiredNoteLetter != null)
+                    {
+                        var highestNoteInChord = chordMovementUpdated.GetHighest();
+
+                        if ((HighestRequiredNoteLetter != highestNoteInChord.Letter))
                         {
                             continue;
                         }
@@ -332,12 +380,10 @@ namespace MusicTheory.Voiceleading
                 }
                 else
                 {
-                    /*numIterationsDiagnostic = */
-                    // Just return the method result?
-                    if (!CalculateVoicingsRecursive(currentDimensionIndex + 1, numDimensions, chordMovementUpdated, /*numIterationsDiagnostic,*/ numRequiredNotes, numStartNotes, /*startNoteMatchesUpdated*/ requiredNoteLettersObtainedUpdated /*,noteOctavePairsObtainedUpdated*/))
+                    if (!CalculateVoicingsRecursive(currentDimensionIndex + 1, numDimensions, chordMovementUpdated, numRequiredNotes, numStartNotes, requiredNoteLettersObtainedUpdated)) 
                     {
                         return false;
-                    }
+                    }  
                 }
             }
 
@@ -391,8 +437,7 @@ namespace MusicTheory.Voiceleading
             {
                 foreach (var endNote in chord)
                 {
-                    // If this has good voiceleading...
-                    if ((endNote - startNote) <= (int)MaxVoiceleadingDistance)
+                    if (HasGoodVoiceleading(startNote, endNote))
                     {
                         startNotesMatched.Add(startNote);
                         break;

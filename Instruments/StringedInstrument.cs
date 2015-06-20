@@ -17,7 +17,7 @@ namespace Instruments
             this.Tuning = new List<MusicalNote>();
         }
 
-        public List<StringedMusicalNote> GetNotesByNoteLetter(NoteLetter chordNoteLetter)
+        public List<StringedMusicalNote> GetNotesByNoteLetter(NoteLetter? chordNoteLetter)
         {
             var stringedNotes = new List<StringedMusicalNote>();
             int numStrings = this.Tuning.Count;
@@ -30,7 +30,7 @@ namespace Instruments
             return stringedNotes;
         }
 
-        private List<StringedMusicalNote> GetNotesOnString(NoteLetter chordNoteLetter, MusicalNote stringNote)
+        private List<StringedMusicalNote> GetNotesOnString(NoteLetter? chordNoteLetter, MusicalNote stringNote)
         {
             var notes = new List<StringedMusicalNote>();
 

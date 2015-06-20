@@ -43,7 +43,7 @@ namespace MusicTheory
 
         public static int operator -(MusicalNote one, MusicalNote two)
         {
-            return Math.Abs(one.ToInt() - two.ToInt());
+            return one.ToInt() - two.ToInt();
         }
 
         private int ToInt()

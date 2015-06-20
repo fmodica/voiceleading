@@ -11,13 +11,14 @@ namespace MusicTheory.Voiceleading
     {
         public List<MusicalNote> StartingChordNotes { get; set; }
         public StringedInstrument StringedInstrument { get; set; }
-        public NoteLetter EndChordRoot { get; set; }
+        public NoteLetter? EndChordRoot { get; set; }
         public List<IntervalOptionalPair> TargetChordIntervalOptionalPairs { get; set; }
-        public Interval MaxVoiceleadingDistance { get; set; }
-        public int MaxFretsToStretch { get; set; }
+        public Interval? MaxVoiceleadingDistance { get; set; }
+        public int? MaxFretsToStretch { get; set; }
         public int? FretToStayAtOrBelow { get; set; }
         public int? FretToStayAtOrAbove { get; set; }
-        public bool RandomVoiceleading { get; set; }
-        public NoteLetter HighestNote { get; set; }
+        public NoteLetter? HighestNote { get; set; }
+        public bool HighestNoteCanTravel { get; set; }
+        public bool LowestNoteCanTravel { get; set; }
     }
 }

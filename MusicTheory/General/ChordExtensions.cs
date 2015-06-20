@@ -12,7 +12,7 @@ namespace MusicTheory
 	/// </summary>
 	public static class ChordExtensions
 	{
-		public static NoteLetter[] GetNoteLettersOfChord(this NoteLetter chordRoot, Interval[] intervals)
+		public static NoteLetter?[] GetNoteLettersOfChord(this NoteLetter? chordRoot, Interval[] intervals)
 		{
             // chordRoot can never be null (will default to C)
 
@@ -21,7 +21,7 @@ namespace MusicTheory
                 throw new ArgumentException("The array of intervals cannot be null.");
             }
 
-			var noteLetters = new NoteLetter[intervals.Length];
+			var noteLetters = new NoteLetter?[intervals.Length];
 
 			int rootValue = (int)chordRoot;
 
@@ -34,7 +34,7 @@ namespace MusicTheory
 				if (rootPlusIntervalIndex > 11)
 					rootPlusIntervalIndex -= 12;
 
-				NoteLetter chordNote = (NoteLetter)Enum.Parse(typeof(NoteLetter), rootPlusIntervalIndex.ToString());
+				NoteLetter? chordNote = (NoteLetter?)Enum.Parse(typeof(NoteLetter), rootPlusIntervalIndex.ToString());
 
 				noteLetters[i] = chordNote;
 			}
