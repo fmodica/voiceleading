@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 
 namespace MusicTheory
 {
@@ -9,5 +6,31 @@ namespace MusicTheory
     {
         public MusicalNote StringItsOn { get; set; }
         public int Fret { get; set; }
+
+        public override bool Equals(object other)
+        {
+            if (other is StringedMusicalNote)
+            {
+                var otherStringedNote = (StringedMusicalNote)other;
+
+                if (otherStringedNote.StringItsOn == null)
+                {
+                    return false;
+                }
+
+                return
+                    IntValue == otherStringedNote.IntValue &&
+                    Fret == otherStringedNote.Fret &&
+                    StringItsOn.IntValue == otherStringedNote.StringItsOn.IntValue;
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            // Meh, but good enough
+            return base.GetHashCode();
+        }
     }
 }

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
 namespace MusicTheory
 {
@@ -12,48 +9,38 @@ namespace MusicTheory
 
         public int IntValue
         {
-            get
-            {
-                return ToInt();
-            }
+            get { return (int) Letter + (12*Octave); }
         }
 
-        // Some useful overloads
         public override int GetHashCode()
         {
-            return this.ToInt();
+            return IntValue;
         }
 
         public override bool Equals(object obj)
         {
             if (obj is MusicalNote)
             {
-                return (this.ToInt() == ((MusicalNote)obj).ToInt());
+                return IntValue == ((MusicalNote) obj).IntValue;
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
 
         public static int operator +(MusicalNote one, MusicalNote two)
         {
-            return one.ToInt() + two.ToInt();
+            return one.IntValue + two.IntValue;
         }
 
         public static int operator -(MusicalNote one, MusicalNote two)
         {
-            return one.ToInt() - two.ToInt();
+            return one.IntValue - two.IntValue;
         }
 
-        private int ToInt()
-        {
-            return (int)this.Letter + (12 * this.Octave);
-        }
-
+        // For .Min() and .Max()
         int IComparable<MusicalNote>.CompareTo(MusicalNote other)
         {
-            return this.ToInt().CompareTo(other.ToInt());
+            return IntValue.CompareTo(other.IntValue);
         }
     }
 }

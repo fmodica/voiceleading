@@ -42,12 +42,14 @@
     <Compile Include="Instruments\StringedInstrument.cs" />
     <Compile Include="MusicTheory\General\MusicTheoryEnums.cs" />
     <Compile Include="MusicTheory\General\ChordExtensions.cs" />
+    <Compile Include="MusicTheory\General\Notes\Chord.cs" />
     <Compile Include="MusicTheory\General\Notes\MusicalNote.cs" />
     <Compile Include="MusicTheory\General\Notes\StringedMusicalNote.cs" />
     <Compile Include="MusicTheory\Voiceleading\IntervalOptionalPair.cs" />
     <Compile Include="MusicTheory\Voiceleading\SIVoiceleader.cs" />
     <Compile Include="MusicTheory\Voiceleading\SIVoiceleaderConfig.cs" />
     <Compile Include="MusicTheory\Voiceleading\VoicingSet.cs" />
+    <Compile Include="MusicTheory\Voiceleading\VoicingSetBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

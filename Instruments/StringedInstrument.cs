@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using MusicTheory;
 
 namespace Instruments
@@ -14,13 +11,12 @@ namespace Instruments
 
         public StringedInstrument()
         {
-            this.Tuning = new List<MusicalNote>();
+            Tuning = new List<MusicalNote>();
         }
 
         public List<StringedMusicalNote> GetNotesByNoteLetter(NoteLetter? chordNoteLetter)
         {
             var stringedNotes = new List<StringedMusicalNote>();
-            int numStrings = this.Tuning.Count;
 
             foreach (MusicalNote tuningNote in this.Tuning)
             {
@@ -34,11 +30,11 @@ namespace Instruments
         {
             var notes = new List<StringedMusicalNote>();
 
-            for (int i = 0; i <= this.NumFrets; i++)
+            for (int i = 0; i <= NumFrets; i++)
             {
-                int noteIndex = (int)stringNote.Letter + i;
+                int noteIndex = (int) stringNote.Letter + i;
                 // Don't need to floor it since it's being cast to an integer.
-                int numOctavesAboveString = noteIndex / 12;
+                int numOctavesAboveString = noteIndex/12;
 
                 // If noteIndex is <= 11, the note on this fret is in the same octave 
                 // as the string's note. After 11, the octave increments. We need to 
@@ -51,7 +47,7 @@ namespace Instruments
                 // incremented twice (once after 12, the other after 24) and we get that 
                 // number by doing 27 / 12 floored. So we must reduce 27 by two octaves 
                 // to get it below 12. Thus it becomes 27 - (12 * 2) = 3, which is note Eb.
-                NoteLetter noteLetter = (NoteLetter)(noteIndex - (numOctavesAboveString * 12));
+                NoteLetter noteLetter = (NoteLetter) (noteIndex - (numOctavesAboveString*12));
 
                 if (noteLetter == chordNoteLetter)
                 {
