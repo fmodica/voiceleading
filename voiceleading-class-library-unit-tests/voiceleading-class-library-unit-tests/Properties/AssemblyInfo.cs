@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("unit-tests")]
+[assembly: AssemblyTitle("voiceleading-class-library-unit-tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("unit-tests")]
+[assembly: AssemblyProduct("voiceleading-class-library-unit-tests")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("fa8f80cf-c60b-4a20-ada1-2410dce9e3a4")]
+[assembly: Guid("34e570c5-86fb-4dd2-97ea-82e8c753e59a")]
 
 // Version information for an assembly consists of the following four values:
 //

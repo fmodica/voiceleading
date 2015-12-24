@@ -3,11 +3,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{FA8F80CF-C60B-4A20-ADA1-2410DCE9E3A4}</ProjectGuid>
+    <ProjectGuid>{34E570C5-86FB-4DD2-97EA-82E8C753E59A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>unit_tests</RootNamespace>
-    <AssemblyName>unit-tests</AssemblyName>
+    <RootNamespace>voiceleading_class_library_unit_tests</RootNamespace>
+    <AssemblyName>voiceleading-class-library-unit-tests</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -50,12 +50,12 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="SingleNoteTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SingleNoteTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\voiceleading-class-library.csproj">
-      <Project>{298ae326-02a1-46b8-8cce-e578ac1c6130}</Project>
+    <ProjectReference Include="..\..\voiceleading-class-library\voiceleading-class-library\voiceleading-class-library.csproj">
+      <Project>{e500da1a-2b91-4c10-8786-c18c185fff13}</Project>
       <Name>voiceleading-class-library</Name>
     </ProjectReference>
   </ItemGroup>
