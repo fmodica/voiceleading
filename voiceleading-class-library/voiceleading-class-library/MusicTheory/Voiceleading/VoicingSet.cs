@@ -49,5 +49,15 @@ namespace MusicTheory.Voiceleading
                 return Fingerings.Any() ? Fingerings[0].Notes.Min() : null;
             }
         }
+
+        public MusicalNote HighestNote
+        {
+            get
+            {
+                // All fingerings should have the same notes. So just pick the
+                // first fingering and grab the lowest note.
+                return Fingerings.Any() ? Fingerings[0].Notes.Max() : null;
+            }
+        }
     }
 }
