@@ -1,7 +1,7 @@
 # Voice Leading Class Library
-A voice leading algorithm which I developed for guitar (or any stringed instrument), written in C#. 
+A voice leading algorithm for guitar (or any stringed instrument), written in C#. 
 
-## Example Setup
+## Example 
 You give it a starting guitar chord fingering, such as the following D min:
 
 ```
