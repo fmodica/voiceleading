@@ -16,5 +16,6 @@ namespace MusicTheory.Voiceleading
         public NoteLetter? HighestNote { get; set; }
         public bool HighestNoteCanTravel { get; set; }
         public bool LowestNoteCanTravel { get; set; }
+        public bool FilterOutOpenNotes { get; set; }
     }
 }

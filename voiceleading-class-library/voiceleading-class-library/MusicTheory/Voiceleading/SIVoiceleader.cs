@@ -19,6 +19,7 @@ namespace MusicTheory.Voiceleading
         private NoteLetter? HighestRequiredNoteLetter { get; set; }
         private bool HighestNoteCanTravel { get; set; }
         private bool LowestNoteCanTravel { get; set; }
+        private bool FilterOutOpenNotes { get; set; }
 
         // To be calculated
         private HashSet<NoteLetter?> RequiredNotes { get; set; }
@@ -134,10 +135,10 @@ namespace MusicTheory.Voiceleading
 
             FretToStayAtOrAbove = config.FretToStayAtOrAbove;
             FretToStayAtOrBelow = config.FretToStayAtOrBelow;
-
             HighestRequiredNoteLetter = config.HighestNote;
             HighestNoteCanTravel = config.HighestNoteCanTravel;
             LowestNoteCanTravel = config.LowestNoteCanTravel;
+            FilterOutOpenNotes = config.FilterOutOpenNotes;
 
             // Initialize collections
             RequiredNotes = new HashSet<NoteLetter?>();
@@ -227,15 +228,16 @@ namespace MusicTheory.Voiceleading
                 if (endNote.Fret > FretToStayAtOrBelow)
                     continue;
 
-                if ((endNote.Fret < FretToStayAtOrAbove) && endNote.Fret != 0)
-                    continue;
+                if (endNote.Fret < FretToStayAtOrAbove)
+                {
+                    if (endNote.Fret != 0 || (endNote.Fret == 0 && FilterOutOpenNotes))
+                        continue;
+                }
 
                 foreach (var startNote in StartingChordNotes)
                 {
                     if (!HasGoodVoiceleading(startNote, endNote))
-                    {
                         continue;
-                    }
 
                     validNotesPerStringForThisNote.Add(endNote);
                 }
