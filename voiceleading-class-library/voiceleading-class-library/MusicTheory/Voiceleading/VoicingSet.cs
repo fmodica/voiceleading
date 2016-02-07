@@ -55,7 +55,7 @@ namespace MusicTheory.Voiceleading
             get
             {
                 // All fingerings should have the same notes. So just pick the
-                // first fingering and grab the lowest note.
+                // first fingering and grab the highest note.
                 return Fingerings.Any() ? Fingerings[0].Notes.Max() : null;
             }
         }

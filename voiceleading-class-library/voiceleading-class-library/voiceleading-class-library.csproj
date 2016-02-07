@@ -50,7 +50,7 @@
     <Compile Include="MusicTheory\Voiceleading\SIVoiceleader.cs" />
     <Compile Include="MusicTheory\Voiceleading\SIVoiceleaderConfig.cs" />
     <Compile Include="MusicTheory\Voiceleading\VoicingSet.cs" />
-    <Compile Include="MusicTheory\Voiceleading\VoicingSetBuilder.cs" />
+    <Compile Include="MusicTheory\Voiceleading\VoicingSetGrouper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />
