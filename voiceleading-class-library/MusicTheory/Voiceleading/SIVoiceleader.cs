@@ -8,6 +8,7 @@ namespace MusicTheory.Voiceleading
     public class SIVoiceleader
     {
         // Constructor parameters
+        private StringedInstrument StringedInstrument { get; set; }
         private List<MusicalNote> StartingChordNotes { get; set; }
         private List<IntervalOptionalPair> TargetChordIntervalOptionalPairs { get; set; }
         private NoteLetter? TargetChordRoot { get; set; }
@@ -15,142 +16,49 @@ namespace MusicTheory.Voiceleading
         private int? MaxFretsToStretch { get; set; }
         private int? FretToStayAtOrBelow { get; set; }
         private int? FretToStayAtOrAbove { get; set; }
-        private StringedInstrument StringedInstrument { get; set; }
         private NoteLetter? HighestRequiredNoteLetter { get; set; }
         private bool HighestNoteCanTravel { get; set; }
         private bool LowestNoteCanTravel { get; set; }
         private bool FilterOutOpenNotes { get; set; }
 
         // To be calculated
-        private HashSet<NoteLetter?> RequiredNotes { get; set; }
-        private List<List<StringedMusicalNote>> TargetNoteOptionsPerString { get; set; }
-        public List<Chord> ChordMovements { get; set; }
-        public IEnumerable<SIVoicingSet> VoicingSets { get; set; }
+        private HashSet<NoteLetter?> RequiredNotes { get; set; } = new HashSet<NoteLetter?>();
+        private List<List<StringedMusicalNote>> TargetNoteOptionsPerString { get; set; } = new List<List<StringedMusicalNote>>();
+        public List<Chord> ChordMovements { get; private set; } = new List<Chord>();
+        public IEnumerable<SIVoicingSet> VoicingSets { get; private set; } = new List<SIVoicingSet>();
 
+        public bool VoicingsLimitReached { get; private set; }
+        private MusicalNote HighestNoteInStartingChord { get; set; }
+        private MusicalNote SecondHighestNoteInStartingChord { get; set; }
+        private MusicalNote LowestNoteInStartingChord { get; set; }
+        private MusicalNote SecondLowestNoteInStartingChord { get; set; }
         public int MaxVoicings
         {
             get { return 20000; }
         }
 
-        public bool VoicingsLimitReached { get; private set; }
-        private MusicalNote HighestNoteInStartChord { get; set; }
-        private MusicalNote SecondHighestNoteInStartingChord { get; set; }
-        private MusicalNote LowestNoteInStartChord { get; set; }
-        private MusicalNote SecondLowestNoteInStartingChord { get; set; }
-
-        // Constructor
         public SIVoiceleader(SIVoiceleaderConfig config)
         {
-            if (config.StartingChordNotes == null || !config.StartingChordNotes.Any())
-            {
-                throw new ArgumentException("You must provide some notes for the starting chord");
-            }
-
-            // Have the lowest pitch note be first so we can identify it in case we want to 
-            // allow it to move by more than the voiceleading limit
-            StartingChordNotes = config.StartingChordNotes.OrderBy(x => x).ToList();
-
-            if (config.EndChordRoot == null)
-            {
-                throw new ArgumentException("You must provide a target chord root.");
-            }
-
-            TargetChordRoot = config.EndChordRoot;
-
-            if (config.StringedInstrument == null)
-            {
-                throw new ArgumentException("You must provide a stringed instrument.");
-            }
-
-            if (config.StringedInstrument.NumFrets == 0)
-            {
-                throw new ArgumentException("The stringed instrument must have more than 0 frets.");
-            }
-
-            if (config.StringedInstrument.Tuning == null || !config.StringedInstrument.Tuning.Any())
-            {
-                throw new ArgumentException("The stringed instrument's tuning cannot be null or empty.");
-            }
-
-            // Distinct works here?
-            if (config.StringedInstrument.Tuning.Distinct().Count() != config.StringedInstrument.Tuning.Count())
-            {
-                throw new ArgumentException(
-                    "The algorithm cannot currently compute voiceleading for a stringed instrument for which two or more strings are tuned to the same pitch.");
-            }
+            SIVoiceleaderConfigValidator.Validate(config);
 
             StringedInstrument = config.StringedInstrument;
-
-            if (config.TargetChordIntervalOptionalPairs == null || !config.TargetChordIntervalOptionalPairs.Any())
-            {
-                throw new ArgumentException("You must provide some interval-optional pairs for the new chord");
-            }
-
-            if (config.TargetChordIntervalOptionalPairs.Select(o => o.Interval).Distinct().Count() !=
-                config.TargetChordIntervalOptionalPairs.Count)
-            {
-                throw new ArgumentException("The list of intervals cannot contain duplicates.");
-            }
-
+            StartingChordNotes = config.StartingChordNotes;
             TargetChordIntervalOptionalPairs = config.TargetChordIntervalOptionalPairs;
-
-            if (config.MaxFretsToStretch == null)
-            {
-                throw new ArgumentException("You must provide the maximum frets to stretch.");
-            }
-
-            if (config.MaxFretsToStretch > StringedInstrument.NumFrets)
-            {
-                throw new ArgumentException(
-                    "The maximum frets to stretch is greater than the number of frets on the instrument");
-            }
-
-            MaxFretsToStretch = config.MaxFretsToStretch;
-
-            if (config.MaxVoiceleadingDistance == null)
-            {
-                throw new ArgumentException("You must provide the maximum voiceleading distance.");
-            }
-
-            if ((config.MaxVoiceleadingDistance < 0) || config.MaxVoiceleadingDistance > Interval.Fourth)
-            {
-                throw new ArgumentException(
-                    "The maximum voiceleading is negative or greater than an interval of a fourth. The point of voiceleading is not to jump by large intervals.");
-            }
-
+            TargetChordRoot = config.EndChordRoot;
             MaxVoiceleadingDistance = config.MaxVoiceleadingDistance;
-
-            config.FretToStayAtOrBelow = config.FretToStayAtOrBelow ?? StringedInstrument.NumFrets;
-            config.FretToStayAtOrAbove = config.FretToStayAtOrAbove ?? 0;
-
-            if (config.FretToStayAtOrBelow < 0)
-            {
-                throw new ArgumentOutOfRangeException("The fret to stay at or below must be at least zero (open note)");
-            }
-
-            if (config.FretToStayAtOrAbove > StringedInstrument.NumFrets)
-            {
-                throw new ArgumentOutOfRangeException("The fret to stay at or above cannot be greater than the number of frets on the instrument");
-            }
-
-            FretToStayAtOrAbove = config.FretToStayAtOrAbove;
-            FretToStayAtOrBelow = config.FretToStayAtOrBelow;
+            MaxFretsToStretch = config.MaxFretsToStretch;
+            FretToStayAtOrBelow = config.FretToStayAtOrBelow ?? StringedInstrument.NumFrets;
+            FretToStayAtOrAbove = config.FretToStayAtOrAbove ?? 0;
             HighestRequiredNoteLetter = config.HighestNote;
             HighestNoteCanTravel = config.HighestNoteCanTravel;
             LowestNoteCanTravel = config.LowestNoteCanTravel;
             FilterOutOpenNotes = config.FilterOutOpenNotes;
 
-            // Initialize collections
-            RequiredNotes = new HashSet<NoteLetter?>();
-            TargetNoteOptionsPerString = new List<List<StringedMusicalNote>>();
-            ChordMovements = new List<Chord>();
-            VoicingSets = new List<SIVoicingSet>();
+            var distinctOrderedStartNotes = StartingChordNotes.Distinct().OrderByDescending(x => x.IntValue).ToList();
 
-            var distinctOrderedStartNotes = StartingChordNotes.Distinct().OrderByDescending(x => x).ToList();
-
-            HighestNoteInStartChord = distinctOrderedStartNotes[0];
+            HighestNoteInStartingChord = distinctOrderedStartNotes[0];
             SecondHighestNoteInStartingChord = distinctOrderedStartNotes.Count > 1 ? distinctOrderedStartNotes[1] : null;
-            LowestNoteInStartChord = distinctOrderedStartNotes[distinctOrderedStartNotes.Count - 1];
+            LowestNoteInStartingChord = distinctOrderedStartNotes[distinctOrderedStartNotes.Count - 1];
             SecondLowestNoteInStartingChord = distinctOrderedStartNotes.Count > 1
                 ? distinctOrderedStartNotes[distinctOrderedStartNotes.Count - 2]
                 : null;
@@ -251,7 +159,7 @@ namespace MusicTheory.Voiceleading
             // If the highest note must be a certain letter, then we assume the highest
             // note in the stat chord is a melody and can jump. It can go as high as it wants,
             // but not lower than the second highest - voice leading limit
-            if ((HighestNoteCanTravel || HighestRequiredNoteLetter != null) && startNote.Equals(HighestNoteInStartChord))
+            if ((HighestNoteCanTravel || HighestRequiredNoteLetter != null) && startNote.Equals(HighestNoteInStartingChord))
             {
                 var lowerLimit = SecondHighestNoteInStartingChord == null
                     ? StringedInstrument.Tuning.Min(x => x.IntValue)
@@ -260,7 +168,7 @@ namespace MusicTheory.Voiceleading
                 return endNote.IntValue >= lowerLimit;
             }
 
-            if (LowestNoteCanTravel && startNote.Equals(LowestNoteInStartChord))
+            if (LowestNoteCanTravel && startNote.Equals(LowestNoteInStartingChord))
             {
                 var higherLimit = SecondLowestNoteInStartingChord == null
                     ? StringedInstrument.Tuning.Max(x => x.IntValue)
