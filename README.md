@@ -45,10 +45,8 @@ X     3     3
 X     X     X     etc...
 ```
 
-There are many more. All of the generated chord fingerings for A7 lead back to the starting Dmin chord with good voiceleading. This means that the notes jump by short distances. Note splitting and convergence possibilities are also taken into account.
+There are many more. All of the generated chord fingerings for A7 lead back to the starting Dmin chord with good voiceleading. This means that the notes jump by short distances. Note splitting and note convergence possibilities are also taken into account.
 
 I hope to give code examples and document the configuration options.
 
-I use this algorithm to calculate all ways to move from one chord to another with good voice leading on my website:
-
-http://frank-modica.com/#/voiceleader
+I use this algorithm in my <a href="http://frank-modica.com/#/voiceleader/index">Guitar Voiceleading Helper</a>.
