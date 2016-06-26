@@ -8,19 +8,14 @@ namespace MusicTheory
 {
     public class Chord
     {
-        public List<MusicalNote> Notes { get; set; }
+        public List<MusicalNote> Notes { get; private set; } = new List<MusicalNote>();
 
-        public Chord()
-        {
-            Notes = new List<MusicalNote>();
-        }
-
-        public Chord(MusicalNote note) : this()
+        public Chord(MusicalNote note)
         {
             Notes.Add(note);
         }
 
-        public Chord(IEnumerable<MusicalNote> notes) : this()
+        public Chord(IEnumerable<MusicalNote> notes)
         {
             Notes.AddRange(notes);
         }

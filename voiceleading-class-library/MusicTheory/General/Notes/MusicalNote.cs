@@ -2,14 +2,23 @@
 
 namespace MusicTheory
 {
-    public class MusicalNote : IComparable<MusicalNote>
+    public class MusicalNote
     {
-        public NoteLetter Letter { get; set; }
-        public int Octave { get; set; }
+        public NoteLetter Letter { get; private set; }
+        public int Octave { get; private set; }
+
+        public MusicalNote(NoteLetter letter, int octave)
+        {
+            Letter = letter;
+            Octave = octave;
+        }
 
         public int IntValue
         {
-            get { return (int) Letter + (12*Octave); }
+            get
+            {
+                return (int)Letter + (12 * Octave);
+            }
         }
 
         public override int GetHashCode()
@@ -21,7 +30,7 @@ namespace MusicTheory
         {
             if (obj is MusicalNote)
             {
-                return IntValue == ((MusicalNote) obj).IntValue;
+                return IntValue == ((MusicalNote)obj).IntValue;
             }
 
             return false;
@@ -35,12 +44,6 @@ namespace MusicTheory
         public static int operator -(MusicalNote one, MusicalNote two)
         {
             return one.IntValue - two.IntValue;
-        }
-
-        // For .Min() and .Max()
-        int IComparable<MusicalNote>.CompareTo(MusicalNote other)
-        {
-            return IntValue.CompareTo(other.IntValue);
         }
     }
 }

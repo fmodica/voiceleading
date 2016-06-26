@@ -73,7 +73,7 @@ namespace MusicTheory.Voiceleading
             }
 
             // Distinct works here?
-            if (config.StringedInstrument.Tuning.Distinct().Count() != config.StringedInstrument.Tuning.Count)
+            if (config.StringedInstrument.Tuning.Distinct().Count() != config.StringedInstrument.Tuning.Count())
             {
                 throw new ArgumentException(
                     "The algorithm cannot currently compute voiceleading for a stringed instrument for which two or more strings are tuned to the same pitch.");
@@ -177,13 +177,13 @@ namespace MusicTheory.Voiceleading
             // The note letters will be returned in the same order as the intervals.
             // Thus TargetChordIntervalOptionalPairs can be referenced by the same index as targetChordLetters).
             NoteLetter?[] targetChordLetters =
-                TargetChordRoot.GetNoteLettersOfChord(TargetChordIntervalOptionalPairs.Select(o => o.Interval).ToArray());
+                TargetChordRoot.GetLettersOfChord(TargetChordIntervalOptionalPairs.Select(o => o.Interval).ToArray());
 
             for (int i = 0; i < targetChordLetters.Length; i++)
             {
                 NoteLetter? targetNoteLetter = targetChordLetters[i];
 
-                var availableLocationsForThisTargetNote = StringedInstrument.GetNotesByNoteLetter(targetNoteLetter);
+                var availableLocationsForThisTargetNote = StringedInstrument.GetNotesOnInstrument(targetNoteLetter);
 
                 if (!TargetChordIntervalOptionalPairs[i].IsOptional)
                 {
@@ -218,8 +218,8 @@ namespace MusicTheory.Voiceleading
                 allTargetNoteLocationsPerString.Values.Select(x => x.ToList()).OrderBy(x => x.Count).ToList();
         }
 
-        private List<StringedMusicalNote> GetValidNotesPerStringForThisNote(
-            List<StringedMusicalNote> availableLocationsForThisTargetNote)
+        private IEnumerable<StringedMusicalNote> GetValidNotesPerStringForThisNote(
+            IEnumerable<StringedMusicalNote> availableLocationsForThisTargetNote)
         {
             var validNotesPerStringForThisNote = new List<StringedMusicalNote>();
 
@@ -254,7 +254,7 @@ namespace MusicTheory.Voiceleading
             if ((HighestNoteCanTravel || HighestRequiredNoteLetter != null) && startNote.Equals(HighestNoteInStartChord))
             {
                 var lowerLimit = SecondHighestNoteInStartingChord == null
-                    ? StringedInstrument.Tuning.Min().IntValue
+                    ? StringedInstrument.Tuning.Min(x => x.IntValue)
                     : (SecondHighestNoteInStartingChord.IntValue - (int)MaxVoiceleadingDistance);
 
                 return endNote.IntValue >= lowerLimit;
@@ -263,7 +263,7 @@ namespace MusicTheory.Voiceleading
             if (LowestNoteCanTravel && startNote.Equals(LowestNoteInStartChord))
             {
                 var higherLimit = SecondLowestNoteInStartingChord == null
-                    ? StringedInstrument.Tuning.Max().IntValue
+                    ? StringedInstrument.Tuning.Max(x => x.IntValue)
                     : (SecondLowestNoteInStartingChord.IntValue - (int)MaxVoiceleadingDistance);
 
                 return endNote.IntValue <= higherLimit;
@@ -365,7 +365,7 @@ namespace MusicTheory.Voiceleading
 
                     if (HighestRequiredNoteLetter != null)
                     {
-                        var highestNoteInChord = chordMovementUpdated.Max();
+                        var highestNoteInChord = chordMovementUpdated.OrderByDescending(x => x.IntValue).First();
 
                         if ((HighestRequiredNoteLetter != highestNoteInChord.Letter))
                         {
@@ -408,7 +408,7 @@ namespace MusicTheory.Voiceleading
 
         private void OrganizeVoicingsByPitchSet()
         {
-            VoicingSets = new SIVoicingSetGrouper(ChordMovements).GetVoicingSets();
+            VoicingSets = new SIVoicingSetGrouper(ChordMovements).VoicingSets;
         }
 
         private List<MusicalNote> GetStartNotesMatched(IEnumerable<MusicalNote> chord)

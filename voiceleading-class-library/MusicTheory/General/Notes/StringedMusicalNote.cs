@@ -4,8 +4,14 @@ namespace MusicTheory
 {
     public class StringedMusicalNote : MusicalNote
     {
-        public MusicalNote StringItsOn { get; set; }
-        public int Fret { get; set; }
+        public MusicalNote StringItsOn { get; private set; }
+        public int Fret { get; private set; }
+
+        public StringedMusicalNote(MusicalNote note, MusicalNote stringItsOn, int fret) : base(note.Letter, note.Octave)
+        {
+            StringItsOn = stringItsOn;
+            Fret = fret;
+        }
 
         public override bool Equals(object other)
         {

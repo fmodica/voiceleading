@@ -4,19 +4,22 @@ namespace MusicTheory.Voiceleading
 {
     public class SIVoicingSetGrouper
     {
-        private Dictionary<string, SIVoicingSet> MapFromVoicingStringRepresentationToVoicingSet { get; set; }
-
-        public SIVoicingSetGrouper()
+        private Dictionary<string, SIVoicingSet> MapFromVoicingStringRepresentationToVoicingSet { get; set; } = new Dictionary<string, SIVoicingSet>();
+        // Should return a copy?
+        public IEnumerable<SIVoicingSet> VoicingSets
         {
-            MapFromVoicingStringRepresentationToVoicingSet = new Dictionary<string, SIVoicingSet>();
+            get
+            {
+                return MapFromVoicingStringRepresentationToVoicingSet.Values;
+            }
         }
 
-        public SIVoicingSetGrouper(Chord chord) : this()
+        public SIVoicingSetGrouper(Chord chord)
         {
             AddChord(chord);
         }
 
-        public SIVoicingSetGrouper(IEnumerable<Chord> chords) : this()
+        public SIVoicingSetGrouper(IEnumerable<Chord> chords)
         {
             foreach (var chord in chords)
             {
@@ -36,11 +39,6 @@ namespace MusicTheory.Voiceleading
             {
                 MapFromVoicingStringRepresentationToVoicingSet[key] = new SIVoicingSet(chord);
             }
-        }
-
-        public IEnumerable<SIVoicingSet> GetVoicingSets()
-        {
-            return MapFromVoicingStringRepresentationToVoicingSet.Values;
         }
     }
 }

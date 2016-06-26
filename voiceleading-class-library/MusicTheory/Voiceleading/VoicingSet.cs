@@ -7,25 +7,20 @@ namespace MusicTheory.Voiceleading
     // Stringed Instrument Voicing Set
     public class SIVoicingSet
     {
-        public List<Chord> Fingerings { get; set; }
+        // Should return a copy?
+        public List<Chord> Fingerings { get; private set; } = new List<Chord>();
 
-        public SIVoicingSet()
-        {
-            Fingerings = new List<Chord>();
-        }
-
-        public SIVoicingSet(Chord chord) : this()
+        public SIVoicingSet(Chord chord)
         {
             Fingerings.Add(chord);
         }
 
-        public SIVoicingSet(IEnumerable<Chord> chords) : this()
+        public SIVoicingSet(IEnumerable<Chord> chords)
         {
             Fingerings.AddRange(chords);
         }
 
-        // Change to NumUniqueNotes
-        public int NumNotes
+        public int NumUniqueNotes
         {
             get
             {
@@ -46,7 +41,7 @@ namespace MusicTheory.Voiceleading
             {
                 // All fingerings should have the same notes. So just pick the
                 // first fingering and grab the lowest note.
-                return Fingerings.Any() ? Fingerings[0].Notes.Min() : null;
+                return Fingerings[0].Notes.OrderBy(x => x.IntValue).First();
             }
         }
 
@@ -56,7 +51,7 @@ namespace MusicTheory.Voiceleading
             {
                 // All fingerings should have the same notes. So just pick the
                 // first fingering and grab the highest note.
-                return Fingerings.Any() ? Fingerings[0].Notes.Max() : null;
+                return Fingerings[0].Notes.OrderByDescending(x => x.IntValue).First();
             }
         }
     }
