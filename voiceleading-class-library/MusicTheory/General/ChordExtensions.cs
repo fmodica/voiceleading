@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MusicTheory
 {
     public static class ChordExtensions
     {
-        public static NoteLetter?[] GetLettersOfChord(this NoteLetter? chordRoot, Interval[] intervals)
+        public static IEnumerable<NoteLetter> GetLettersOfChord(this NoteLetter? chordRoot, IEnumerable<Interval> intervals)
         {
             if (chordRoot == null)
             {
@@ -16,12 +18,12 @@ namespace MusicTheory
                 throw new ArgumentException(nameof(intervals) + " cannot be null.");
             }
 
-            var noteLetters = new NoteLetter?[intervals.Length];
+            var noteLetters = new List<NoteLetter>();
             var rootValue = (int)chordRoot;
 
-            for (int i = 0; i < noteLetters.Length; i++)
+            foreach (var interval in intervals)
             {
-                var intervalDistance = (int)intervals[i];
+                var intervalDistance = (int)interval;
                 var rootPlusIntervalIndex = rootValue + intervalDistance;
 
                 if (rootPlusIntervalIndex > 11)
@@ -31,7 +33,7 @@ namespace MusicTheory
 
                 NoteLetter? chordNote = (NoteLetter?)Enum.Parse(typeof(NoteLetter), rootPlusIntervalIndex.ToString());
 
-                noteLetters[i] = chordNote;
+                noteLetters.Add((NoteLetter)chordNote);
             }
 
             return noteLetters;
