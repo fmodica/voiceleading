@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MusicTheory
+﻿namespace MusicTheory
 {
     public class MusicalNote
     {

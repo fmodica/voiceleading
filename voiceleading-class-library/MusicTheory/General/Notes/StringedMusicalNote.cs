@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace MusicTheory
+﻿namespace MusicTheory
 {
     public class StringedMusicalNote : MusicalNote
     {

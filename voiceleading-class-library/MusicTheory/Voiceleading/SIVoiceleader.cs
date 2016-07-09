@@ -299,7 +299,7 @@ namespace MusicTheory.Voiceleading
 
         private void OrganizeVoicingsByPitchSet()
         {
-            VoicingSets = new SIVoicingSetGrouper(ChordMovements).VoicingSets;
+            VoicingSets = new SIVoicingSetGrouper(ChordMovements, new Chord(StartingChordNotes)).VoicingSets;
         }
 
         private List<MusicalNote> GetStartNotesMatched(IEnumerable<MusicalNote> chord)
