@@ -163,28 +163,48 @@ namespace MusicTheory.Voiceleading
 
         private bool HasGoodVoiceleading(MusicalNote startNote, MusicalNote endNote)
         {
-            // If the highest note must be a certain letter, then we assume the highest
-            // note in the start chord is a melody and can jump. It can go as high as it wants,
-            // but not lower than the second highest - voice leading limit.
-            if ((HighestNoteCanTravel || HighestRequiredNoteLetter != null) && startNote.Equals(HighestNoteInStartingChord))
+            // If the highest note can travel it can go as high as possible.
+            // But it cannot go lower than the 2nd highest note - the max
+            // voiceleading jump.
+            if (HighestNoteCanTravel && startNote.Equals(HighestNoteInStartingChord))
             {
-                var lowerLimit = SecondHighestNoteInStartingChord == null
-                    ? StringedInstrument.Tuning.Min(x => x.IntValue)
-                    : (SecondHighestNoteInStartingChord.IntValue - (int)MaxVoiceleadingDistance);
+                return endNote.IntValue >= GetLowerLimitOfHighestNoteThatCanJump();
+            }
 
-                return endNote.IntValue >= lowerLimit;
+            // If there is a highest required note letter, then the highest note
+            // can only jump as high as possible if the end note is that required
+            // note letter. Otherwise, it has to satisfy the basic criteria for
+            // all other end notes.
+            if (HighestRequiredNoteLetter != null && startNote.Equals(HighestNoteInStartingChord))
+            {
+                return endNote.Letter == HighestRequiredNoteLetter ? endNote.IntValue >= GetLowerLimitOfHighestNoteThatCanJump() : SatisfiesBasicVoiceleadingJumpCriteria(startNote, endNote);
             }
 
             if (LowestNoteCanTravel && startNote.Equals(LowestNoteInStartingChord))
             {
-                var higherLimit = SecondLowestNoteInStartingChord == null
-                    ? StringedInstrument.Tuning.Max(x => x.IntValue)
-                    : (SecondLowestNoteInStartingChord.IntValue - (int)MaxVoiceleadingDistance);
-
-                return endNote.IntValue <= higherLimit;
+                return endNote.IntValue <= GetUpperLimitOfLowestNoteThatCanJump();
             }
 
-            return Math.Abs(endNote - startNote) <= (int)MaxVoiceleadingDistance;
+            return SatisfiesBasicVoiceleadingJumpCriteria(startNote, endNote);
+        }
+
+        private int GetUpperLimitOfLowestNoteThatCanJump()
+        {
+            return SecondLowestNoteInStartingChord == null
+                                ? StringedInstrument.Tuning.Max(x => x.IntValue)
+                                : (SecondLowestNoteInStartingChord.IntValue - (int)MaxVoiceleadingDistance);
+        }
+
+        private bool SatisfiesBasicVoiceleadingJumpCriteria(MusicalNote startNote, MusicalNote endNote)
+        {
+            return Math.Abs(endNote.IntValue - startNote.IntValue) <= (int)MaxVoiceleadingDistance;
+        }
+
+        private int GetLowerLimitOfHighestNoteThatCanJump()
+        {
+            return SecondHighestNoteInStartingChord == null
+                ? StringedInstrument.Tuning.Min(x => x.IntValue)
+                : (SecondHighestNoteInStartingChord.IntValue - (int)MaxVoiceleadingDistance);
         }
 
         // return false if the voicings limit has been reached

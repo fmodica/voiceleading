@@ -33,15 +33,5 @@
 
             return false;
         }
-
-        public static int operator +(MusicalNote one, MusicalNote two)
-        {
-            return one.IntValue + two.IntValue;
-        }
-
-        public static int operator -(MusicalNote one, MusicalNote two)
-        {
-            return one.IntValue - two.IntValue;
-        }
     }
 }
