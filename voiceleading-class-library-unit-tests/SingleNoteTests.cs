@@ -4,6 +4,7 @@ using MusicTheory;
 using MusicTheory.Voiceleading;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace voiceleading_class_library_tests
 {
@@ -11,7 +12,7 @@ namespace voiceleading_class_library_tests
     public class SIVoiceleaderSingleNoteUnitTests
     {
         [TestMethod]
-        public void SingleNoteMovesTowardsOtherSingleNoteWithinVoiceleadingDistanceLimitCorrectly()
+        public async Task SingleNoteMovesTowardsOtherSingleNoteWithinVoiceleadingDistanceLimitCorrectly()
         {
             var config = GetStandardConfig();
 
@@ -33,7 +34,7 @@ namespace voiceleading_class_library_tests
 
             var voiceleader = new SIVoiceleader(config);
 
-            voiceleader.CalculateVoicings();
+            await voiceleader.CalculateVoicings();
 
             var results = voiceleader.VoicingSets;
 
@@ -62,7 +63,8 @@ namespace voiceleading_class_library_tests
                     new MusicalNote(NoteLetter.D, 3),
                     new MusicalNote(NoteLetter.A, 2),
                     new MusicalNote(NoteLetter.E, 2)
-                }, 24)
+                }, 24),
+                CalculationTimeoutInMilliseconds = 10000
             };
         }
     }

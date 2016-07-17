@@ -81,6 +81,11 @@ namespace MusicTheory.Voiceleading
             {
                 throw new ArgumentOutOfRangeException(nameof(config.FretToStayAtOrAbove) + " is greater than " + nameof(config.StringedInstrument.NumFrets) + ".");
             }
+
+            if (config.CalculationTimeoutInMilliseconds == 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(config.CalculationTimeoutInMilliseconds) + " is zero.");
+            }
         }
     }
 }

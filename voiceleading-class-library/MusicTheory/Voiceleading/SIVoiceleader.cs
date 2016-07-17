@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Instruments;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MusicTheory.Voiceleading
 {
@@ -20,16 +22,12 @@ namespace MusicTheory.Voiceleading
         private bool HighestNoteCanTravel { get; set; }
         private bool LowestNoteCanTravel { get; set; }
         private bool FilterOutOpenNotes { get; set; }
+        private int CalculationTimeoutInMilliseconds { get; set; }
 
         // To be calculated
-        private List<Chord> ChordMovements { get; set; } = new List<Chord>();
         public IEnumerable<SIVoicingSet> VoicingSets { get; private set; } = new List<SIVoicingSet>();
-        public bool VoicingsLimitReached { get; private set; }
-        public int MaxVoicings
-        {
-            get { return 20000; }
-        }
 
+        private List<Chord> CalculatedChords { get; set; } = new List<Chord>();
         private HashSet<NoteLetter?> RequiredNotes { get; set; } = new HashSet<NoteLetter?>();
         private List<List<StringedMusicalNote>> ValidTargetNotesOnEachString { get; set; } = new List<List<StringedMusicalNote>>();
         // These letters will be in the same order as TargetChordIntervalOptionalPairs.
@@ -38,6 +36,7 @@ namespace MusicTheory.Voiceleading
         private MusicalNote SecondHighestNoteInStartingChord { get; set; }
         private MusicalNote LowestNoteInStartingChord { get; set; }
         private MusicalNote SecondLowestNoteInStartingChord { get; set; }
+        private CancellationTokenSource TokenSource { get; set; }
 
         public SIVoiceleader(SIVoiceleaderConfig config)
         {
@@ -55,6 +54,7 @@ namespace MusicTheory.Voiceleading
             HighestNoteCanTravel = config.HighestNoteCanTravel;
             LowestNoteCanTravel = config.LowestNoteCanTravel;
             FilterOutOpenNotes = config.FilterOutOpenNotes;
+            CalculationTimeoutInMilliseconds = config.CalculationTimeoutInMilliseconds;
 
             var distinctOrderedStartNotes = StartingChordNotes.Distinct().OrderByDescending(x => x.IntValue).ToList();
 
@@ -63,13 +63,14 @@ namespace MusicTheory.Voiceleading
             LowestNoteInStartingChord = distinctOrderedStartNotes[distinctOrderedStartNotes.Count - 1];
             SecondLowestNoteInStartingChord = distinctOrderedStartNotes.Count > 1 ? distinctOrderedStartNotes[distinctOrderedStartNotes.Count - 2] : null;
         }
-
-        public void CalculateVoicings()
+        
+        public async Task CalculateVoicings()
         {
             CalculateTargetChordLetters();
             CalculateRequiredNoteLetters();
             CalculateValidTargetNotesOnEachString();
-            VoicingsLimitReached = !CalculateVoicingsRecursive(0, new List<StringedMusicalNote>(), new HashSet<int>());
+
+            await CalculateWithTimeout();
             OrganizeVoicingsByPitchSet();
         }
 
@@ -207,9 +208,18 @@ namespace MusicTheory.Voiceleading
                 : (SecondHighestNoteInStartingChord.IntValue - (int)MaxVoiceleadingDistance);
         }
 
-        // return false if the voicings limit has been reached
-        private bool CalculateVoicingsRecursive(int currentStringIndex, IEnumerable<StringedMusicalNote> chordInProgress, HashSet<int> requiredNoteLettersObtained)
+        private async Task CalculateWithTimeout()
         {
+            await Task.Run(() =>
+            {
+                CalculateRecursive(0, new List<StringedMusicalNote>(), new HashSet<int>(), new CancellationTokenSource(CalculationTimeoutInMilliseconds).Token);
+            });
+        }
+
+        private void CalculateRecursive(int currentStringIndex, IEnumerable<StringedMusicalNote> chordInProgress, HashSet<int> requiredNoteLettersObtained, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
             // For each string on the instrument, we have a list of available notes, including
             // a null which represents not playing anything on that string. 
             //
@@ -234,7 +244,7 @@ namespace MusicTheory.Voiceleading
             // get out so we can start the next iteration of the string above. 
             if (numStringsLeftIncludingThis < numRequiredNotesLeft)
             {
-                return true;
+                return;
             }
 
             var thisString = ValidTargetNotesOnEachString[currentStringIndex];
@@ -298,28 +308,18 @@ namespace MusicTheory.Voiceleading
                         continue;
 
                     // Chord is acceptable
-                    ChordMovements.Add(new Chord(chordInProgressUpdated.ToList()));
-
-                    if (ChordMovements.Count >= MaxVoicings)
-                    {
-                        return false;
-                    }
+                    CalculatedChords.Add(new Chord(chordInProgressUpdated.ToList()));
                 }
                 else
                 {
-                    if (!CalculateVoicingsRecursive(currentStringIndex + 1, chordInProgressUpdated, requiredNoteLettersObtainedUpdated))
-                    {
-                        return false;
-                    }
+                    CalculateRecursive(currentStringIndex + 1, chordInProgressUpdated, requiredNoteLettersObtainedUpdated, token);
                 }
             }
-
-            return true;
         }
 
         private void OrganizeVoicingsByPitchSet()
         {
-            VoicingSets = new SIVoicingSetGrouper(ChordMovements, new Chord(StartingChordNotes)).VoicingSets;
+            VoicingSets = new SIVoicingSetGrouper(CalculatedChords, new Chord(StartingChordNotes)).VoicingSets;
         }
 
         private List<MusicalNote> GetStartNotesMatched(IEnumerable<MusicalNote> chord)
