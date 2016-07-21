@@ -27,33 +27,30 @@ namespace voiceleading_class_library_tests
                     IsOptional = false
                 }
             };
-            config.StartingChordNotes = new List<MusicalNote>()
-            {
-                new MusicalNote(NoteLetter.E, 4)
-            };
+            config.StartChord = new Chord<MusicalNote>(new MusicalNote(NoteLetter.E, 4));
 
-            var voiceleader = new SIVoiceleader(config);
+            var voiceleader = new Voiceleader(config);
 
             await voiceleader.CalculateVoicings();
 
             var results = voiceleader.VoicingSets;
 
-            var expectedFingerings = new List<Chord>()
+            var expectedFingerings = new List<Chord<StringedMusicalNote>>()
             {
-                new Chord(new StringedMusicalNote(new MusicalNote(NoteLetter.Fsharp, 4), new MusicalNote(NoteLetter.E, 4), 2)),
-                new Chord(new StringedMusicalNote(new MusicalNote(NoteLetter.Fsharp, 4), new MusicalNote(NoteLetter.B, 3), 7)),
-                new Chord(new StringedMusicalNote(new MusicalNote(NoteLetter.Fsharp, 4), new MusicalNote(NoteLetter.G, 3), 11)),
-                new Chord(new StringedMusicalNote(new MusicalNote(NoteLetter.Fsharp, 4), new MusicalNote(NoteLetter.D, 3), 16)),
-                new Chord(new StringedMusicalNote(new MusicalNote(NoteLetter.Fsharp, 4), new MusicalNote(NoteLetter.A, 2), 21))
+                new Chord<StringedMusicalNote>(new StringedMusicalNote(new MusicalNote(NoteLetter.Fsharp, 4), new MusicalNote(NoteLetter.E, 4), 2)),
+                new Chord<StringedMusicalNote>(new StringedMusicalNote(new MusicalNote(NoteLetter.Fsharp, 4), new MusicalNote(NoteLetter.B, 3), 7)),
+                new Chord<StringedMusicalNote>(new StringedMusicalNote(new MusicalNote(NoteLetter.Fsharp, 4), new MusicalNote(NoteLetter.G, 3), 11)),
+                new Chord<StringedMusicalNote>(new StringedMusicalNote(new MusicalNote(NoteLetter.Fsharp, 4), new MusicalNote(NoteLetter.D, 3), 16)),
+                new Chord<StringedMusicalNote>(new StringedMusicalNote(new MusicalNote(NoteLetter.Fsharp, 4), new MusicalNote(NoteLetter.A, 2), 21))
             };
 
             Assert.AreEqual(results.Count(), 1);
             CollectionAssert.AreEquivalent(expectedFingerings, results.First().Fingerings);
         }
 
-        private SIVoiceleaderConfig GetStandardConfig()
+        private Config GetStandardConfig()
         {
-            return new SIVoiceleaderConfig()
+            return new Config()
             {
                 StringedInstrument = new StringedInstrument(new List<MusicalNote>()
                 {

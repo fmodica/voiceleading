@@ -3,9 +3,9 @@ using Instruments;
 
 namespace MusicTheory.Voiceleading
 {
-    public class SIVoiceleaderConfig
+    public class Config
     {
-        public List<MusicalNote> StartingChordNotes { get; set; }
+        public Chord<MusicalNote> StartChord { get; set; }
         public StringedInstrument StringedInstrument { get; set; }
         public NoteLetter? EndChordRoot { get; set; }
         public List<IntervalOptionalPair> TargetChordIntervalOptionalPairs { get; set; }

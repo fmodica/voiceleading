@@ -1,12 +1,19 @@
-﻿namespace MusicTheory
+﻿using System;
+
+namespace MusicTheory
 {
-    public class StringedMusicalNote : MusicalNote
+    public class StringedMusicalNote : MusicalNote, IEquatable<StringedMusicalNote>
     {
         public MusicalNote StringItsOn { get; private set; }
         public int Fret { get; private set; }
 
         public StringedMusicalNote(MusicalNote note, MusicalNote stringItsOn, int fret) : base(note.Letter, note.Octave)
         {
+            if (stringItsOn == null)
+            {
+                throw new ArgumentNullException(nameof(stringItsOn));
+            }
+
             StringItsOn = stringItsOn;
             Fret = fret;
         }
@@ -15,17 +22,7 @@
         {
             if (other is StringedMusicalNote)
             {
-                var otherStringedNote = (StringedMusicalNote)other;
-
-                if (otherStringedNote.StringItsOn == null)
-                {
-                    return false;
-                }
-
-                return
-                    IntValue == otherStringedNote.IntValue &&
-                    Fret == otherStringedNote.Fret &&
-                    StringItsOn.IntValue == otherStringedNote.StringItsOn.IntValue;
+                return _Equals(other as StringedMusicalNote);
             }
 
             return false;
@@ -35,6 +32,24 @@
         {
             // Meh, but good enough
             return base.GetHashCode();
+        }
+
+        public bool Equals(StringedMusicalNote other)
+        {
+            return _Equals(other);
+        }
+
+        private bool _Equals(StringedMusicalNote other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            return
+                    IntValue == other.IntValue &&
+                    Fret == other.Fret &&
+                    StringItsOn.IntValue == other.StringItsOn.IntValue;
         }
     }
 }

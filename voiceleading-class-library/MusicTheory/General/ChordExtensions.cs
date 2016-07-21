@@ -4,18 +4,28 @@ using System.Linq;
 
 namespace MusicTheory
 {
-    public static class ChordExtensions
+    public static class Extensions
     {
-        public static IEnumerable<NoteLetter> GetLettersOfChord(this NoteLetter? chordRoot, IEnumerable<Interval> intervals)
+        public static IEnumerable<NoteLetter> GetLettersOfChord(this NoteLetter? chordRoot, IEnumerable<Interval?> intervals)
         {
             if (chordRoot == null)
             {
-                throw new ArgumentException(nameof(chordRoot) + " cannot be null.");
+                throw new ArgumentNullException(nameof(chordRoot));
             }
 
             if (intervals == null)
             {
-                throw new ArgumentException(nameof(intervals) + " cannot be null.");
+                throw new ArgumentNullException(nameof(intervals));
+            }
+
+            if (!intervals.Any())
+            {
+                throw new ArgumentException("The collection is empty.", nameof(intervals));
+            }
+
+            if (intervals.Any(x => x == null))
+            {
+                throw new ArgumentNullException("An object in " + nameof(intervals) + " is null");
             }
 
             var noteLetters = new List<NoteLetter>();

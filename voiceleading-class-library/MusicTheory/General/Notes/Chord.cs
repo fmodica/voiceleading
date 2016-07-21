@@ -1,28 +1,54 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace MusicTheory
 {
-    public class Chord
+    public class Chord<T> : IEquatable<Chord<T>> where T : MusicalNote
     {
-        public List<MusicalNote> Notes { get; private set; } = new List<MusicalNote>();
+        public List<T> Notes { get; private set; } = new List<T>();
 
-        public Chord(MusicalNote note)
+        public Chord(T note)
         {
+            if (note == null)
+            {
+                throw new ArgumentNullException(nameof(note));
+            }
+
             Notes.Add(note);
         }
 
-        public Chord(IEnumerable<MusicalNote> notes)
+        public Chord(IEnumerable<T> notes)
         {
+            if (notes == null)
+            {
+                throw new ArgumentNullException(nameof(notes));
+            }
+
+            if (!notes.Any())
+            {
+                throw new ArgumentException("The collection is empty.", nameof(notes));
+            }
+
+            if (notes.Any(x => x == null))
+            {
+                throw new ArgumentNullException("An object in " + nameof(notes) + " is null");
+            }
+
             Notes.AddRange(notes);
+        }
+
+        public bool Equals(Chord<T> other)
+        {
+            return _Equals(other);
         }
 
         public override bool Equals(object obj)
         {
-            if (obj is Chord)
+            if (obj is Chord<T>)
             {
-                return !Notes.Except(((Chord)obj).Notes).Any();
+                return _Equals(obj as Chord<T>);
             }
 
             return false;
@@ -30,10 +56,15 @@ namespace MusicTheory
 
         public override int GetHashCode()
         {
-            return ToUniqueMusicalNoteString().GetHashCode();
+            return ToString().GetHashCode();
         }
 
-        public string ToUniqueMusicalNoteString()
+        public string ToSortedPitchString()
+        {
+            return ToString();
+        }
+
+        public override string ToString()
         {
             if (Notes == null || !Notes.Any())
             {
@@ -48,6 +79,11 @@ namespace MusicTheory
             }
 
             return str.ToString();
+        }
+
+        private bool _Equals(Chord<T> chord)
+        {
+            return !Notes.Except(chord?.Notes).Any();
         }
     }
 }

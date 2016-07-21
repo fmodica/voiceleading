@@ -5,53 +5,58 @@ using System.Linq;
 namespace MusicTheory.Voiceleading
 {
     // Stringed Instrument Voicing Set
-    public class SIVoicingSet
+    public class VoicingSet
     {
         // Should return a copy?
-        public List<Chord> Fingerings { get; private set; } = new List<Chord>();
-        private Chord StartChord { get; set; }
+        public List<Chord<StringedMusicalNote>> Fingerings { get; private set; } = new List<Chord<StringedMusicalNote>>();
+        private Chord<MusicalNote> StartChord { get; set; }
 
-        public SIVoicingSet(Chord chord, Chord startChord)
+        public VoicingSet(Chord<StringedMusicalNote> endChordFingering, Chord<MusicalNote> startChord)
         {
-            Validate(startChord);
-            Validate(chord);
+            if (endChordFingering == null)
+            {
+                throw new ArgumentNullException(nameof(endChordFingering));
+            }
 
+            if (startChord == null)
+            {
+                throw new ArgumentNullException(nameof(startChord));
+            }
+
+            Fingerings.Add(endChordFingering);
             StartChord = startChord;
-            Fingerings.Add(chord);
         }
 
-        public SIVoicingSet(IEnumerable<Chord> chords, Chord startChord)
+        public VoicingSet(IEnumerable<Chord<StringedMusicalNote>> endChordFingerings, Chord<MusicalNote> startChord)
         {
-            Validate(startChord);
-            StartChord = startChord;
-
-            foreach (var chord in chords)
+            if (endChordFingerings == null)
             {
-                Validate(chord);
+                throw new ArgumentNullException(nameof(endChordFingerings));
+            }
+
+            if (endChordFingerings.Any(x => x == null))
+            {
+                throw new ArgumentNullException("An object in " + nameof(endChordFingerings) + " is null.");
+            }
+         
+            if (startChord == null)
+            {
+                throw new ArgumentNullException(nameof(startChord));
+            }
+
+            foreach (var chord in endChordFingerings)
+            {
                 Fingerings.Add(chord);
             }
-        }
 
-        private static void Validate(Chord chord)
-        {
-            if (chord == null || !chord.Notes.Any())
-            {
-                throw new ArgumentException(nameof(chord) + " was null or empty.");
-            }
+            StartChord = startChord;
         }
 
         public int NumUniqueNotes
         {
             get
             {
-                // Every fingering should be made up of the same musical notes
-                // but there could be duplicate musical notes on different strings:
-                // E: 0
-                // B: 5
-                // Presumably if the above exists then the E: 0 and B: 5 exist
-                // alone as well. So return the fingering with the least number 
-                // of notes.
-                return GetUniqueFingering(Fingerings).Notes.Count;
+                return GetUniqueFingering(Fingerings.Cast<Chord<MusicalNote>>()).Notes.Count;
             }
         }
 
@@ -59,8 +64,6 @@ namespace MusicTheory.Voiceleading
         {
             get
             {
-                // All fingerings should have the same notes. So just pick the
-                // first fingering and grab the lowest note.
                 return Fingerings[0].Notes.OrderBy(x => x.IntValue).First();
             }
         }
@@ -69,8 +72,6 @@ namespace MusicTheory.Voiceleading
         {
             get
             {
-                // All fingerings should have the same notes. So just pick the
-                // first fingering and grab the highest note.
                 return Fingerings[0].Notes.OrderByDescending(x => x.IntValue).First();
             }
         }
@@ -79,15 +80,15 @@ namespace MusicTheory.Voiceleading
         {
             get
             {
-                var uniqueStartChord = GetUniqueFingering(new List<Chord>() { StartChord });
-                var uniqueEndChord = GetUniqueFingering(Fingerings);
+                var uniqueStartChord = GetUniqueFingering(new List<Chord<MusicalNote>>() { StartChord });
+                var uniqueEndChord = GetUniqueFingering(Fingerings.Cast<Chord<MusicalNote>>());
                 var sumOfMinimumDifferencesForBothChords = GetSumOfMinimumDifferences(uniqueStartChord, uniqueEndChord) + GetSumOfMinimumDifferences(uniqueEndChord, uniqueStartChord);
 
                 return sumOfMinimumDifferencesForBothChords / (uniqueStartChord.Notes.Count + uniqueEndChord.Notes.Count);
             }
         }
 
-        private double GetSumOfMinimumDifferences(Chord chord1, Chord chord2)
+        private double GetSumOfMinimumDifferences(Chord<MusicalNote> chord1, Chord<MusicalNote> chord2)
         {
             var sumOfMinDistances = 0.0;
 
@@ -111,26 +112,19 @@ namespace MusicTheory.Voiceleading
             return sumOfMinDistances;
         }
 
-        private Chord GetUniqueFingering(IEnumerable<Chord> fingerings)
+        private Chord<MusicalNote> GetUniqueFingering(IEnumerable<Chord<MusicalNote>> chords)
         {
-            var chordsWithUniqueNotes = new List<Chord>();
+            var map = new Dictionary<int, MusicalNote>();
 
-            foreach (var chord in fingerings)
+            foreach (var note in chords.First().Notes)
             {
-                var map = new Dictionary<int, MusicalNote>();
-
-                foreach (var note in chord.Notes)
+                if (!map.ContainsKey(note.IntValue))
                 {
-                    if (!map.ContainsKey(note.IntValue))
-                    {
-                        map[note.IntValue] = new MusicalNote(note.Letter, note.Octave);
-                    }
+                    map[note.IntValue] = note;
                 }
-
-                chordsWithUniqueNotes.Add(new Chord(map.Values));
             }
 
-            return chordsWithUniqueNotes.First();
+            return new Chord<MusicalNote>(map.Values);
         }
     }
 }

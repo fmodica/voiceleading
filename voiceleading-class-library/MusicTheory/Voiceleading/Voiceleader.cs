@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace MusicTheory.Voiceleading
 {
-    public class SIVoiceleader
+    public class Voiceleader
     {
         // Constructor parameters
         private StringedInstrument StringedInstrument { get; set; }
-        private List<MusicalNote> StartingChordNotes { get; set; }
+        private Chord<MusicalNote> StartChord { get; set; }
         private List<IntervalOptionalPair> TargetChordIntervalOptionalPairs { get; set; }
         private NoteLetter? TargetChordRoot { get; set; }
         private Interval? MaxVoiceleadingDistance { get; set; }
@@ -24,10 +24,17 @@ namespace MusicTheory.Voiceleading
         private bool FilterOutOpenNotes { get; set; }
         private int CalculationTimeoutInMilliseconds { get; set; }
 
-        // To be calculated
-        public IEnumerable<SIVoicingSet> VoicingSets { get; private set; } = new List<SIVoicingSet>();
+        private List<VoicingSet> voicingSets { get; set; } = new List<VoicingSet>();
+        public IEnumerable<VoicingSet> VoicingSets
+        {
+            get
+            {
+                // TODO: clone
+                return voicingSets;
+            }
+        }
 
-        private List<Chord> CalculatedChords { get; set; } = new List<Chord>();
+        private List<Chord<StringedMusicalNote>> CalculatedChords { get; set; } = new List<Chord<StringedMusicalNote>>();
         private HashSet<NoteLetter?> RequiredNotes { get; set; } = new HashSet<NoteLetter?>();
         private List<List<StringedMusicalNote>> ValidTargetNotesOnEachString { get; set; } = new List<List<StringedMusicalNote>>();
         // These letters will be in the same order as TargetChordIntervalOptionalPairs.
@@ -38,12 +45,12 @@ namespace MusicTheory.Voiceleading
         private MusicalNote SecondLowestNoteInStartingChord { get; set; }
         private CancellationTokenSource TokenSource { get; set; }
 
-        public SIVoiceleader(SIVoiceleaderConfig config)
+        public Voiceleader(Config config)
         {
-            SIVoiceleaderConfigValidator.Validate(config);
+            ConfigValidator.Validate(config);
 
             StringedInstrument = config.StringedInstrument;
-            StartingChordNotes = config.StartingChordNotes;
+            StartChord = config.StartChord;
             TargetChordIntervalOptionalPairs = config.TargetChordIntervalOptionalPairs;
             TargetChordRoot = config.EndChordRoot;
             MaxVoiceleadingDistance = config.MaxVoiceleadingDistance;
@@ -56,14 +63,14 @@ namespace MusicTheory.Voiceleading
             FilterOutOpenNotes = config.FilterOutOpenNotes;
             CalculationTimeoutInMilliseconds = config.CalculationTimeoutInMilliseconds;
 
-            var distinctOrderedStartNotes = StartingChordNotes.Distinct().OrderByDescending(x => x.IntValue).ToList();
+            var distinctOrderedStartNotes = StartChord.Notes.Distinct().OrderByDescending(x => x.IntValue).ToList();
 
             HighestNoteInStartingChord = distinctOrderedStartNotes[0];
             SecondHighestNoteInStartingChord = distinctOrderedStartNotes.Count > 1 ? distinctOrderedStartNotes[1] : null;
             LowestNoteInStartingChord = distinctOrderedStartNotes[distinctOrderedStartNotes.Count - 1];
             SecondLowestNoteInStartingChord = distinctOrderedStartNotes.Count > 1 ? distinctOrderedStartNotes[distinctOrderedStartNotes.Count - 2] : null;
         }
-        
+
         public async Task CalculateVoicings()
         {
             CalculateTargetChordLetters();
@@ -150,7 +157,7 @@ namespace MusicTheory.Voiceleading
                         continue;
                 }
 
-                foreach (var startNote in StartingChordNotes)
+                foreach (var startNote in StartChord.Notes)
                 {
                     if (!HasGoodVoiceleading(startNote, note))
                         continue;
@@ -304,11 +311,11 @@ namespace MusicTheory.Voiceleading
 
                     // If melody splitting/convergence is allowed, we just need to make sure all start 
                     // notes have been matched
-                    if (GetStartNotesMatched(chordInProgressUpdated).Count != StartingChordNotes.Count)
+                    if (GetStartNotesMatched(chordInProgressUpdated).Count != StartChord.Notes.Count)
                         continue;
 
                     // Chord is acceptable
-                    CalculatedChords.Add(new Chord(chordInProgressUpdated.ToList()));
+                    CalculatedChords.Add(new Chord<StringedMusicalNote>(chordInProgressUpdated.ToList()));
                 }
                 else
                 {
@@ -319,14 +326,33 @@ namespace MusicTheory.Voiceleading
 
         private void OrganizeVoicingsByPitchSet()
         {
-            VoicingSets = new SIVoicingSetGrouper(CalculatedChords, new Chord(StartingChordNotes)).VoicingSets;
+            var map = new Dictionary<string, List<Chord<StringedMusicalNote>>>();
+
+            foreach (var chord in CalculatedChords)
+            {
+                var key = chord.ToSortedPitchString();
+
+                if (map.ContainsKey(key))
+                {
+                    map[key].Add(chord);
+                }
+                else
+                {
+                    map[key] = new List<Chord<StringedMusicalNote>>() { chord };
+                }
+            }
+
+            foreach (var kvp in map)
+            {
+                voicingSets.Add(new VoicingSet(kvp.Value, StartChord));
+            }
         }
 
         private List<MusicalNote> GetStartNotesMatched(IEnumerable<MusicalNote> chord)
         {
             var startNotesMatched = new List<MusicalNote>();
 
-            foreach (var startNote in StartingChordNotes)
+            foreach (var startNote in StartChord.Notes)
             {
                 foreach (var endNote in chord)
                 {

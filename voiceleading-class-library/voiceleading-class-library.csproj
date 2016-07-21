@@ -47,11 +47,10 @@
     <Compile Include="MusicTheory\General\Notes\MusicalNote.cs" />
     <Compile Include="MusicTheory\General\Notes\StringedMusicalNote.cs" />
     <Compile Include="MusicTheory\Voiceleading\IntervalOptionalPair.cs" />
-    <Compile Include="MusicTheory\Voiceleading\SIVoiceleader.cs" />
-    <Compile Include="MusicTheory\Voiceleading\SIVoiceleaderConfigValidator.cs" />
-    <Compile Include="MusicTheory\Voiceleading\SIVoiceleaderConfig.cs" />
+    <Compile Include="MusicTheory\Voiceleading\Voiceleader.cs" />
+    <Compile Include="MusicTheory\Voiceleading\ConfigValidator.cs" />
+    <Compile Include="MusicTheory\Voiceleading\Config.cs" />
     <Compile Include="MusicTheory\Voiceleading\VoicingSet.cs" />
-    <Compile Include="MusicTheory\Voiceleading\VoicingSetGrouper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />

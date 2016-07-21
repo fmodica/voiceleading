@@ -12,14 +12,24 @@ namespace Instruments
 
         public StringedInstrument(IEnumerable<MusicalNote> tuning, int numFrets)
         {
-            if (tuning == null || !tuning.Any())
+            if (tuning == null)
             {
-                throw new ArgumentException(nameof(tuning) + " must have at least one note.");
+                throw new ArgumentNullException(nameof(tuning));
+            }
+
+            if (!tuning.Any())
+            {
+                throw new ArgumentException("The collection is empty." + nameof(tuning));
+            }
+
+            if (tuning.Any(x => x == null))
+            {
+                throw new ArgumentNullException("An object in " + nameof(tuning) + " is null");
             }
 
             if (numFrets <= 0)
             {
-                throw new ArgumentException(nameof(numFrets) + " must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(numFrets), "The value must be greater than zero.");
             }
 
             Tuning = tuning;
@@ -28,6 +38,11 @@ namespace Instruments
 
         public IEnumerable<StringedMusicalNote> GetNotesOnInstrument(NoteLetter? noteLetter)
         {
+            if (noteLetter == null)
+            {
+                throw new ArgumentNullException(nameof(noteLetter));
+            }
+
             var notes = new List<StringedMusicalNote>();
 
             foreach (var tuningNote in Tuning)
