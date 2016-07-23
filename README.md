@@ -13,7 +13,7 @@ X
 x
 ```
 
-Then you give it a target chord type (i.e. a root note and a list of intervals that define the target chord), like the following for A7:
+Then you give it a target chord, like the following for A7:
 
 Root = A,
 Intervals = 1, 3, 5, b7 
@@ -21,7 +21,7 @@ Intervals = 1, 3, 5, b7
 The algorithm then finds all guitar chord fingerings for A7 which lead back to the starting Dmin chord with good voice leading.
 
 ## Example Results
-After passing some config options which limit the results to a certain fret range, max voice leading "jump" allowed, etc., here is a sample of some of the A7 (target) chord fingerings found:
+Here is a sample of some of the A7 chord fingerings found:
 
 A7 Voicing 1 (with multiple fingerings)
 
