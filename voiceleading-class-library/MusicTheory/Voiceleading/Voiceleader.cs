@@ -200,7 +200,7 @@ namespace MusicTheory.Voiceleading
         {
             return SecondLowestNoteInStartingChord == null
                                 ? StringedInstrument.Tuning.Max(x => x.IntValue)
-                                : (SecondLowestNoteInStartingChord.IntValue - (int)MaxVoiceleadingDistance);
+                                : (SecondLowestNoteInStartingChord.IntValue + (int)MaxVoiceleadingDistance);
         }
 
         private bool SatisfiesBasicVoiceleadingJumpCriteria(MusicalNote startNote, MusicalNote endNote)
