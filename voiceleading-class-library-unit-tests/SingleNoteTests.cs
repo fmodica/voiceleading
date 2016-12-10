@@ -1,10 +1,9 @@
-﻿using Instruments;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MusicTheory;
-using MusicTheory.Voiceleading;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Voiceleading;
 
 namespace voiceleading_class_library_tests
 {
@@ -16,7 +15,7 @@ namespace voiceleading_class_library_tests
         {
             var config = GetStandardConfig();
 
-            config.EndChordRoot = NoteLetter.Fsharp;
+            config.TargetChordRoot = NoteLetter.Fsharp;
             config.MaxFretsToStretch = 0;
             config.MaxVoiceleadingDistance = Interval.Second;
             config.TargetChordIntervalOptionalPairs = new List<IntervalOptionalPair>()

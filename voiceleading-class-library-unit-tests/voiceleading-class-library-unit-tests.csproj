@@ -54,6 +54,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\music-theory-class-library\music-theory-class-library.csproj">
+      <Project>{6f004453-c49d-45d6-aa37-6666c81b588f}</Project>
+      <Name>music-theory-class-library</Name>
+    </ProjectReference>
     <ProjectReference Include="..\voiceleading-class-library\voiceleading-class-library.csproj">
       <Project>{e500da1a-2b91-4c10-8786-c18c185fff13}</Project>
       <Name>voiceleading-class-library</Name>

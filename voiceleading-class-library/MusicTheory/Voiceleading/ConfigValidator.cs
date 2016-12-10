@@ -18,9 +18,9 @@ namespace MusicTheory.Voiceleading
                 throw new ArgumentNullException(nameof(config.StartChord));
             }
 
-            if (config.EndChordRoot == null)
+            if (config.TargetChordRoot == null)
             {
-                throw new ArgumentNullException(nameof(config.EndChordRoot));
+                throw new ArgumentNullException(nameof(config.TargetChordRoot));
             }
 
             if (config.StringedInstrument == null)
@@ -88,6 +88,16 @@ namespace MusicTheory.Voiceleading
                 throw new ArgumentOutOfRangeException(nameof(config.MaxVoiceleadingDistance), MUST_BE_LESS_THAN_OR_EQUAL_TO_MAJOR_THIRD);
             }
 
+            if (config.FretToStayAtOrBelow == null)
+            {
+                throw new ArgumentNullException(nameof(config.FretToStayAtOrBelow));
+            }
+
+            if (config.FretToStayAtOrAbove == null)
+            {
+                throw new ArgumentNullException(nameof(config.FretToStayAtOrAbove));
+            }
+
             if (config.FretToStayAtOrBelow < 0 || config.FretToStayAtOrAbove > config.StringedInstrument.NumFrets)
             {
                 throw new ArgumentOutOfRangeException(nameof(config.FretToStayAtOrBelow), GetBetweenZeroAndMaxMessage(nameof(config.StringedInstrument.NumFrets)));
@@ -97,11 +107,6 @@ namespace MusicTheory.Voiceleading
             {
                 throw new ArgumentOutOfRangeException(nameof(config.CalculationTimeoutInMilliseconds), MUST_BE_GREATER_THAN_ZERO);
             }
-        }
-
-        private static string GetCollectionWithNullValueMessage(string name)
-        {
-            throw new ArgumentNullException("An object in " + name + " is null");
         }
 
         private static string GetBetweenZeroAndMaxMessage(string name)
