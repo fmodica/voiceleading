@@ -208,13 +208,25 @@ namespace Voiceleading
                 {
                     if (!chordInProgressUpdated.Any()) continue;
 
-                    if (Config.HighestNote != null)
+                    if (Config.HighestNote != null || Config.LowestNote != null)
                     {
-                        var highestNoteInChord = chordInProgressUpdated.OrderByDescending(chordNote => chordNote.IntValue).First();
+                        var ordered = chordInProgressUpdated.OrderByDescending(chordNote => chordNote.IntValue);
 
-                        if ((Config.HighestNote != highestNoteInChord.Letter)) continue;
+                        if (Config.HighestNote != null)
+                        {
+                            var highestNoteInChord = ordered.First();
+
+                            if ((Config.HighestNote != highestNoteInChord.Letter)) continue;
+                        }
+
+                        if (Config.LowestNote != null)
+                        {
+                            var lowestNoteInChord = ordered.Last();
+
+                            if ((Config.LowestNote != lowestNoteInChord.Letter)) continue;
+                        }
                     }
-
+                    
                     // If the chord made it this far, it had at most one more required note to go and
                     // may have just obtained it. So if its length is numRequiredNotes we are good.
                     if (requiredNoteLettersObtainedUpdated.Count != RequiredTargetChordNoteLetters.Count) continue;

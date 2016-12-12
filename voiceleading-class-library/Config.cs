@@ -14,6 +14,7 @@ namespace Voiceleading
         public int MinFret { get; set; }
         public int MaxFret { get; set; }
         public NoteLetter? HighestNote { get; set; }
+        public NoteLetter? LowestNote { get; set; }
         public bool HighestNoteCanTravel { get; set; }
         public bool LowestNoteCanTravel { get; set; }
         public bool FilterOutOpenNotes { get; set; }
