@@ -5,13 +5,13 @@ namespace MusicTheory
 {
     public class StringedMusicalNote : MusicalNote, IEquatable<StringedMusicalNote>
     {
-        public MusicalNote StringItsOn { get; private set; }
+        public MusicalNote String { get; private set; }
         public int Fret { get; private set; }
 
-        public StringedMusicalNote(MusicalNote note, MusicalNote stringItsOn, int fret) : base(note.Letter, note.Octave)
+        public StringedMusicalNote(MusicalNote note, MusicalNote @string, int fret) : base(note.Letter, note.Octave)
         {
-            stringItsOn.ValidateIsNotNull(nameof(stringItsOn));
-            StringItsOn = stringItsOn;
+            @string.ValidateIsNotNull(nameof(@string));
+            String = @string;
             Fret = fret;
         }
 
@@ -39,7 +39,7 @@ namespace MusicTheory
 
             return IntValue == other.IntValue &&
                    Fret == other.Fret &&
-                   StringItsOn.IntValue == other.StringItsOn.IntValue;
+                   String.IntValue == other.String.IntValue;
         }
 
         public override int GetHashCode()

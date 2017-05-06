@@ -25,7 +25,7 @@ namespace MusicTheory
                 .Distinct()
                 .SelectMany(noteLetter => GetNotesOnInstrument(noteLetter))
                 .Where(note => filterFunc == null || filterFunc(note))
-                .GroupBy(note => note.StringItsOn)
+                .GroupBy(note => note.String)
                 .ToDictionary(group => group.Key, group => group.ToList());
         }
 
@@ -33,7 +33,7 @@ namespace MusicTheory
         {
             return Tuning
                 .SelectMany(tuningNote => GetNotesOnString(noteLetter, tuningNote))
-                .OrderBy(note => note.StringItsOn.IntValue);
+                .OrderBy(note => note.String.IntValue);
         }
 
         private List<StringedMusicalNote> GetNotesOnString(NoteLetter? noteLetterToFind, MusicalNote tuningNote)
@@ -42,9 +42,9 @@ namespace MusicTheory
 
             for (var i = 0; i <= NumFrets; i++)
             {
-                var noteIndex = (int) tuningNote.Letter + i;
+                var noteIndex = (int)tuningNote.Letter + i;
                 // We don't need to floor it since it's being cast to an integer.
-                var numOctavesAboveString = noteIndex/12;
+                var numOctavesAboveString = noteIndex / 12;
 
                 // If noteIndex is <= 11, the note on this fret is in the same octave 
                 // as the string's note. After 11, the octave increments. We need to 
@@ -57,14 +57,14 @@ namespace MusicTheory
                 // incremented twice (once after 12, the other after 24) and we get that 
                 // number by doing 27 / 12 floored. So we must reduce 27 by two octaves 
                 // to get it below 12. Thus it becomes 27 - (12 * 2) = 3, which is note Eb.
-                var noteLetter = (NoteLetter) (noteIndex - (numOctavesAboveString*12));
+                var noteLetter = (NoteLetter)(noteIndex - (numOctavesAboveString * 12));
 
                 if (noteLetter == noteLetterToFind)
                 {
                     var foundNote = new MusicalNote(noteLetter, tuningNote.Octave + numOctavesAboveString);
-                    var stringItsOn = new MusicalNote(tuningNote.Letter, tuningNote.Octave);
+                    var @string = new MusicalNote(tuningNote.Letter, tuningNote.Octave);
 
-                    notes.Add(new StringedMusicalNote(foundNote, stringItsOn, i));
+                    notes.Add(new StringedMusicalNote(foundNote, @string, i));
                 }
             }
 
