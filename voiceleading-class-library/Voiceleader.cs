@@ -226,7 +226,7 @@ namespace Voiceleading
                             if ((Config.LowestNote != lowestNoteInChord.Letter)) continue;
                         }
                     }
-                    
+
                     // If the chord made it this far, it had at most one more required note to go and
                     // may have just obtained it. So if its length is numRequiredNotes we are good.
                     if (requiredNoteLettersObtainedUpdated.Count != RequiredTargetChordNoteLetters.Count) continue;
@@ -246,9 +246,21 @@ namespace Voiceleading
 
         private void GroupFingeringsIntoVoicingSets()
         {
-            VoicingSets = CalculatedFingerings
+            var grouped = CalculatedFingerings
                 .GroupBy(chord => chord.ToSortedPitchString())
-                .Select(group => new VoicingSet(group, Config.StartChord))
+                .ToDictionary(x => x.Key, x => x.ToList());
+
+            // We cannot modify the dictionary in place if we interate over the entries or
+            // keys, so we iterate over a copy of the keys instead.
+            grouped.Keys.ToList().ForEach(key =>
+            {
+                var fingerings = grouped[key];
+
+                grouped[key] = fingerings.OrderBy(x => GetLowestFret(x.Notes)).ToList();
+            });
+
+            VoicingSets = grouped
+                .Select(group => new VoicingSet(group.Value, Config.StartChord))
                 .ToList();
         }
 
@@ -261,9 +273,7 @@ namespace Voiceleading
 
         private bool ChordIsTooWide(IEnumerable<StringedMusicalNote> chord)
         {
-            var withoutOpens = chord
-                .Select(note => note.Fret)
-                .Where(fret => fret != 0);
+            var withoutOpens = WithoutOpenNotes(chord);
 
             // If they were all open notes, this cannot be too wide
             if (!withoutOpens.Any()) return false;
@@ -272,6 +282,20 @@ namespace Voiceleading
             var min = withoutOpens.Min();
 
             return (max - min) > Config.MaxFretsToStretch;
+        }
+
+        private IEnumerable<int> WithoutOpenNotes(IEnumerable<StringedMusicalNote> chord)
+        {
+            return chord
+                .Select(note => note.Fret)
+                .Where(fret => fret != 0);
+        }
+
+        private int GetLowestFret(IEnumerable<StringedMusicalNote> chord)
+        {
+            var withoutOpens = WithoutOpenNotes(chord);
+
+            return withoutOpens.Any() ? withoutOpens.Min() : 0;
         }
     }
 }
