@@ -49,4 +49,4 @@ There are many more. All of the generated chord fingerings for A7 lead back to t
 
 I hope to give code examples and document the configuration options.
 
-I use this algorithm in my <a target="_blank" href="http://frankmodica.azurewebsites.net/voiceleader/index">Guitar Voiceleading Helper</a>.
+I use this algorithm in my <a target="_blank" href="http://frankmodica.net/voiceleader/index">Guitar Voiceleading Helper</a>.
