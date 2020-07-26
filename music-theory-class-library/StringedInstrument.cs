@@ -1,7 +1,6 @@
-﻿using System;
+﻿using HelperExtensions;
 using System.Collections.Generic;
 using System.Linq;
-using HelperExtensions;
 
 namespace MusicTheory
 {
@@ -19,12 +18,11 @@ namespace MusicTheory
             NumFrets = numFrets;
         }
 
-        public Dictionary<MusicalNote, List<StringedMusicalNote>> CreateMapFromStringToNotesOnString(IEnumerable<NoteLetter> noteLetters, Func<StringedMusicalNote, bool> filterFunc)
+        public Dictionary<MusicalNote, List<StringedMusicalNote>> CreateMapFromStringToNotesOnString(IEnumerable<NoteLetter> noteLetters)
         {
             return noteLetters
                 .Distinct()
                 .SelectMany(noteLetter => GetNotesOnInstrument(noteLetter))
-                .Where(note => filterFunc == null || filterFunc(note))
                 .GroupBy(note => note.String)
                 .ToDictionary(group => group.Key, group => group.ToList());
         }
